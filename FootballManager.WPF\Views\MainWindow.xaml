@@ -1,0 +1,702 @@
+<Window x:Class="FootballManager.WPF.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
+        Title="FootballManager"
+        Height="700"
+        Width="1160"
+        MinHeight="640"
+        MinWidth="1020"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B1421"
+        FontFamily="Segoe UI"
+        FlowDirection="LeftToRight">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FootballManager.WPF;component/Resources/FootballManagerTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#C5D0DE" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="Margin" Value="0,3" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="NavBorder" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="NavBorder" Property="Background" Value="#1C3046" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="NavBorder" Property="Background" Value="#263B53" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#E7BD20" />
+            <Setter Property="Foreground" Value="#152030" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#F6D54A" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#425064" />
+                                <Setter Property="Foreground" Value="#9AA6B4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Background" Value="#1B2C41" />
+            <Setter Property="Foreground" Value="#EEF3F8" />
+            <Setter Property="Padding" Value="16,9" />
+        </Style>
+
+        <Style x:Key="DarkTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#0D1928" />
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="BorderBrush" Value="#30445C" />
+            <Setter Property="CaretBrush" Value="#F4C928" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style x:Key="DarkPasswordBoxStyle" TargetType="PasswordBox">
+            <Setter Property="Background" Value="#0D1928" />
+            <Setter Property="Foreground" Value="#F3F6FA" />
+            <Setter Property="BorderBrush" Value="#30445C" />
+            <Setter Property="CaretBrush" Value="#F4C928" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#D8E1EC" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+        <Style x:Key="PasswordEyeStyle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="42" />
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Margin" Value="8,0,0,0" />
+            <Setter Property="Background" Value="#1A2A3E" />
+            <Setter Property="Foreground" Value="#B6C5D6" />
+            <Setter Property="BorderBrush" Value="#30445C" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="ToolTip" Value="הצגה או הסתרה של הסיסמה" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="EyeBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8">
+                            <Grid Width="21" Height="18">
+                                <Path Fill="Transparent" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" Data="M1,9 C4,3.8 7.5,1 10.5,1 C13.5,1 17,3.8 20,9 C17,14.2 13.5,17 10.5,17 C7.5,17 4,14.2 1,9 Z" />
+                                <Ellipse Width="6" Height="6" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" />
+                                <Line x:Name="Slash" X1="2" Y1="17" X2="19" Y2="1" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.8" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Slash" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="EyeBorder" Property="BorderBrush" Value="#E7BD20" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="EyeBorder" Property="Background" Value="#263B53" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DarkTabItemStyle" TargetType="TabItem">
+            <Setter Property="Foreground" Value="#C5D0DE" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="18,9" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabBorder" Background="Transparent" CornerRadius="7" Padding="{TemplateBinding Padding}" Margin="3,0">
+                            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="#24364B" />
+                                <Setter Property="Foreground" Value="#F4C928" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="#1B2C41" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MatchItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="MatchCard" Background="#152438" BorderBrush="#24364A" BorderThickness="1" CornerRadius="10">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="MatchCard" Property="BorderBrush" Value="#E7BD20" />
+                                <Setter TargetName="MatchCard" Property="Background" Value="#1B2E44" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MatchCard" Property="Background" Value="#1B2E44" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource PageBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="76" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#111E2E" BorderBrush="#243448" BorderThickness="0,0,0,1" Padding="24,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="150" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="38" Height="38" CornerRadius="12" Background="#E7BD20" Margin="0,0,11,0">
+                        <TextBlock Text="FM" Foreground="#142033" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="FOOTBALL MANAGER" Foreground="#F3F6FA" FontSize="16" FontWeight="Bold" />
+                        <TextBlock Text="מועדון הכדורגל שלך" Foreground="#91A2B7" FontSize="11" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" FlowDirection="RightToLeft">
+                    <Button Style="{StaticResource NavButtonStyle}" Content="משחקים" Click="ShowMatches_Click" />
+                    <Button Style="{StaticResource NavButtonStyle}" Content="הרכבים" Click="ShowLineups_Click" />
+                    <Button Style="{StaticResource NavButtonStyle}" Content="שחקנים" Click="ShowPlayers_Click" />
+                    <Button Style="{StaticResource NavButtonStyle}" Content="קבוצות" Click="ShowTeams_Click" />
+                </StackPanel>
+                <Button Grid.Column="2" Style="{StaticResource SecondaryButtonStyle}" Content="התחברות" Click="OpenLogin_Click" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="224" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="#0E1A29" BorderBrush="#223448" BorderThickness="0,0,1,0" Padding="16,20">
+                <DockPanel LastChildFill="True" FlowDirection="RightToLeft">
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
+                        <Border Background="#17283B" CornerRadius="10" Padding="12" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="חדש במועדון?" Foreground="#F3F6FA" FontWeight="Bold" FontSize="14" />
+                                <TextBlock Text="בחר את סוג החשבון שלך" Foreground="#91A2B7" FontSize="11" Margin="0,4,0,10" />
+                                <Button Style="{StaticResource PrimaryButtonStyle}" Content="הרשמה כשחקן" Margin="0,0,0,7" Click="OpenPlayerRegistration_Click" />
+                                <Button Style="{StaticResource SecondaryButtonStyle}" Content="כניסת מאמן" Click="OpenLogin_Click" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="FootballManager · גרסת הדגמה" Foreground="#6F8197" FontSize="10" TextAlignment="Center" />
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="תפריט" Foreground="#71849A" FontSize="11" Margin="8,2,8,10" />
+                        <Button Style="{StaticResource NavButtonStyle}" Background="#24354A" Foreground="#F4C928" Content="⚽   תוצאות ומשחקים" Click="ShowMatches_Click" />
+                        <Button Style="{StaticResource NavButtonStyle}" Content="♟   הרכבים" Click="ShowLineups_Click" />
+                        <Button Style="{StaticResource NavButtonStyle}" Content="שחקנים" Click="ShowPlayers_Click" />
+                        <Button Style="{StaticResource NavButtonStyle}" Content="קבוצות וסגלים" Click="ShowTeams_Click" />
+                        <Border Height="1" Background="#243448" Margin="8,18" />
+                        <Border Background="#142438" CornerRadius="9" Padding="12">
+                            <StackPanel>
+                                <TextBlock Text="מצב צפייה" Foreground="#91A2B7" FontSize="11" />
+                                <TextBlock Text="אורח" Foreground="#F3F6FA" FontWeight="SemiBold" FontSize="14" Margin="0,4,0,0" />
+                                <TextBlock Text="מידע ציבורי בלבד" Foreground="#91A2B7" FontSize="11" Margin="0,3,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <Grid Grid.Column="1" Margin="26,22" FlowDirection="RightToLeft">
+                <Grid x:Name="GuestHomePanel">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="0,0,0,17">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="ברוכים הבאים ל־FootballManager" Foreground="#F3F6FA" FontSize="27" FontWeight="Bold" />
+                            <TextBlock Text="תוצאות, משחקים והרכבים במקום אחד" Foreground="#91A2B7" FontSize="14" Margin="0,5,0,0" />
+                        </StackPanel>
+                        <Border Grid.Column="1" Background="#332C1A" BorderBrush="#735F20" BorderThickness="1" CornerRadius="16" Padding="12,7" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
+                                <Image Source="/FootballManager.WPF;component/Images/football-pitch.png" Width="72" Height="42" Stretch="UniformToFill" Margin="0,0,10,0" />
+                                <TextBlock Text="נתוני הדגמה בלבד" Foreground="#F4D860" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Grid.Row="1" Background="#152438" CornerRadius="10" Padding="14,10" Margin="0,0,0,16">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Right" Text="המשחקים האחרונים והקרובים" Foreground="#E5ECF4" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" HorizontalAlignment="Left">
+                                <Button x:Name="AllMatchesFilter" Style="{StaticResource SecondaryButtonStyle}" Content="הכול" Tag="All" Padding="14,6" Margin="4,0" Click="MatchFilter_Click" />
+                                <Button x:Name="FinishedMatchesFilter" Style="{StaticResource SecondaryButtonStyle}" Content="הסתיימו" Tag="Finished" Padding="14,6" Margin="4,0" Click="MatchFilter_Click" />
+                                <Button x:Name="UpcomingMatchesFilter" Style="{StaticResource SecondaryButtonStyle}" Content="בקרוב" Tag="Upcoming" Padding="14,6" Margin="4,0" Click="MatchFilter_Click" />
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*" />
+                            <ColumnDefinition Width="0.9*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="MatchesSection" Grid.Column="0" Background="{StaticResource PanelBrush}" CornerRadius="12" Padding="17" Margin="0,0,12,0">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+                                    <TextBlock Text="לוח המשחקים" Foreground="#F3F6FA" FontSize="17" FontWeight="Bold" />
+                                    <TextBlock Text="תוכן לדוגמה שמוצג עד לחיבור טבלאות משחקים למסד הנתונים." Foreground="#91A2B7" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                </StackPanel>
+                                <ListBox x:Name="MatchesListBox"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         ItemContainerStyle="{StaticResource MatchItemStyle}"
+                                         SelectionChanged="MatchesListBox_SelectionChanged"
+                                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="13,11" FlowDirection="RightToLeft">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <DockPanel Grid.Row="0" Margin="0,0,0,12">
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding League}" Foreground="#C4D0DE" FontSize="12" FontWeight="SemiBold" />
+                                                    <TextBlock DockPanel.Dock="Left" Text="{Binding StatusLabel}" Foreground="#E8C944" FontSize="11" />
+                                                </DockPanel>
+                                                <Grid Grid.Row="1">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding HomeTeam}" Foreground="#F3F6FA" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                    <Border Grid.Column="1" Background="#24364B" CornerRadius="6" Padding="11,7" Margin="9,0">
+                                                        <TextBlock Text="{Binding ScoreOrTime}" Foreground="#FFFFFF" FontSize="14" FontWeight="Bold" FlowDirection="LeftToRight" />
+                                                    </Border>
+                                                    <TextBlock Grid.Column="2" Text="{Binding AwayTeam}" Foreground="#F3F6FA" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                </Grid>
+                                                <TextBlock Grid.Row="2" Text="{Binding MatchDate}" Foreground="#8193A9" FontSize="10" Margin="0,10,0,0" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <TextBlock x:Name="NoMatchesText" DockPanel.Dock="Bottom" Text="אין משחקים בתצוגה הזאת." Foreground="#91A2B7" Visibility="Collapsed" Margin="0,8,0,0" />
+                            </DockPanel>
+                        </Border>
+
+                        <Border x:Name="LineupSection" Grid.Column="1" Background="{StaticResource PanelBrush}" CornerRadius="12" Padding="17" Margin="12,0,0,0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="הרכב למשחק" Foreground="#F3F6FA" FontSize="17" FontWeight="Bold" />
+                                        <TextBlock x:Name="SelectedMatchTitle" Text="בחר משחק כדי לראות הרכב לדוגמה" Foreground="#91A2B7" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                        <TextBlock x:Name="SelectedHomeTeam" Text="קבוצת הבית" Foreground="#DCE5EE" FontSize="12" FontWeight="SemiBold" Margin="0,7,0,0" />
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Background="#20364A" CornerRadius="6" Padding="8,5" VerticalAlignment="Center">
+                                        <TextBlock Text="4–3–3" Foreground="#B9D7C9" FontSize="11" FontWeight="Bold" />
+                                    </Border>
+                                </Grid>
+                                <Border Grid.Row="1" Background="#11683F" BorderBrush="#36A36D" BorderThickness="2" CornerRadius="10" Height="240" ClipToBounds="True" VerticalAlignment="Center">
+                                    <Canvas FlowDirection="LeftToRight" Width="246" Height="224" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Rectangle Canvas.Left="8" Canvas.Top="8" Width="230" Height="208" RadiusX="5" RadiusY="5" Stroke="#7BC89D" StrokeThickness="1.2" />
+                                        <Line X1="8" Y1="112" X2="238" Y2="112" Stroke="#7BC89D" StrokeThickness="1" />
+                                        <Ellipse Canvas.Left="86" Canvas.Top="75" Width="74" Height="74" Stroke="#7BC89D" StrokeThickness="1" />
+                                        <Rectangle Canvas.Left="59" Canvas.Top="8" Width="128" Height="38" Stroke="#7BC89D" StrokeThickness="1" />
+                                        <Rectangle Canvas.Left="59" Canvas.Top="178" Width="128" Height="38" Stroke="#7BC89D" StrokeThickness="1" />
+                                        <Rectangle Canvas.Left="92" Canvas.Top="8" Width="62" Height="18" Stroke="#7BC89D" StrokeThickness="1" />
+                                        <Rectangle Canvas.Left="92" Canvas.Top="198" Width="62" Height="18" Stroke="#7BC89D" StrokeThickness="1" />
+                                        <Ellipse Canvas.Left="120" Canvas.Top="109" Width="5" Height="5" Fill="#DDF5E7" />
+                                        <Ellipse Canvas.Left="120" Canvas.Top="23" Width="5" Height="5" Fill="#DDF5E7" />
+                                        <Ellipse Canvas.Left="120" Canvas.Top="196" Width="5" Height="5" Fill="#DDF5E7" />
+
+                                        <StackPanel Canvas.Left="105" Canvas.Top="25" Width="42">
+                                            <Ellipse Width="25" Height="25" Fill="#E7BD20" Stroke="#FFF0A6" StrokeThickness="1" HorizontalAlignment="Center" />
+                                            <TextBlock Text="שוער" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Canvas.Left="25" Canvas.Top="52" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#DBE6ED" HorizontalAlignment="Center" />
+                                            <TextBlock Text="מגן" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Canvas.Left="78" Canvas.Top="47" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#DBE6ED" HorizontalAlignment="Center" />
+                                            <TextBlock Text="בלם" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Canvas.Left="137" Canvas.Top="47" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#DBE6ED" HorizontalAlignment="Center" />
+                                            <TextBlock Text="בלם" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Canvas.Left="190" Canvas.Top="52" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#DBE6ED" HorizontalAlignment="Center" />
+                                            <TextBlock Text="מגן" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+
+                                        <StackPanel Canvas.Left="45" Canvas.Top="108" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#E7BD20" HorizontalAlignment="Center" />
+                                            <TextBlock Text="קשר" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Canvas.Left="105" Canvas.Top="121" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#E7BD20" HorizontalAlignment="Center" />
+                                            <TextBlock Text="קשר" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Canvas.Left="165" Canvas.Top="108" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#E7BD20" HorizontalAlignment="Center" />
+                                            <TextBlock Text="קשר" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+
+                                        <StackPanel Canvas.Left="35" Canvas.Top="163" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#F3F6FA" HorizontalAlignment="Center" />
+                                            <TextBlock Text="כנף" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Canvas.Left="105" Canvas.Top="155" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#F3F6FA" HorizontalAlignment="Center" />
+                                            <TextBlock Text="חלוץ" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Canvas.Left="175" Canvas.Top="163" Width="48">
+                                            <Ellipse Width="25" Height="25" Fill="#F3F6FA" HorizontalAlignment="Center" />
+                                            <TextBlock Text="כנף" Foreground="White" FontSize="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                    </Canvas>
+                                </Border>
+                                <TextBlock Grid.Row="2" Text="העמדות להמחשה בלבד · נתוני משחקים והרכבים עדיין לא מחוברים למסד." Foreground="#91A2B7" FontSize="10" TextWrapping="Wrap" Margin="0,9,0,0" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <Grid x:Name="ContentBrowsePanel" Visibility="Collapsed" FlowDirection="RightToLeft">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,14">
+                        <Button Content="← למסך הראשי" DockPanel.Dock="Left" Style="{StaticResource SecondaryButtonStyle}" Click="ShowGuest_Click" />
+                        <StackPanel>
+                            <TextBlock Text="שחקנים, קבוצות וסגלים" Foreground="#F3F6FA" FontSize="25" FontWeight="Bold" />
+                            <TextBlock Text="מידע ציבורי נטען משירות WCF" Foreground="#91A2B7" FontSize="13" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </DockPanel>
+                    <TabControl x:Name="ContentTabs" Grid.Row="1" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource DarkTabItemStyle}" SelectionChanged="ContentTabs_SelectionChanged">
+                        <TabItem Header="שחקנים">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                                    <Button Content="חפש" DockPanel.Dock="Left" Style="{StaticResource PrimaryButtonStyle}" Click="SearchPlayers_Click" />
+                                    <ComboBox x:Name="PlayerPositionFilter" DockPanel.Dock="Left" Width="150" Margin="0,0,8,0" SelectedIndex="0">
+                                        <ComboBoxItem Content="כל העמדות" Tag="" />
+                                        <ComboBoxItem Content="שוער" Tag="שוער" />
+                                        <ComboBoxItem Content="הגנה" Tag="הגנה" />
+                                        <ComboBoxItem Content="קישור" Tag="קישור" />
+                                        <ComboBoxItem Content="התקפה" Tag="התקפה" />
+                                    </ComboBox>
+                                    <TextBox x:Name="PlayerSearchTextBox" Style="{StaticResource DarkTextBoxStyle}" Width="260" MaxLength="60" ToolTip="חיפוש לפי שם" />
+                                </DockPanel>
+                                <ListBox x:Name="PublicPlayersList" Grid.Row="1" Background="#0D1928" Foreground="#F3F6FA" BorderBrush="#30445C" SelectionChanged="PublicPlayersList_SelectionChanged" />
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="קבוצות וסגלים">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <GroupBox Header="קבוצות" Foreground="#F3F6FA" Background="{StaticResource PanelBrush}" Padding="10" Margin="0,0,7,0">
+                                    <ListBox x:Name="PublicTeamsList" Background="#0D1928" Foreground="#F3F6FA" BorderBrush="#30445C" SelectionChanged="PublicTeamsList_SelectionChanged" />
+                                </GroupBox>
+                                <GroupBox Grid.Column="1" Header="סגל פעיל" Foreground="#F3F6FA" Background="{StaticResource PanelBrush}" Padding="10" Margin="7,0,0,0">
+                                    <ListBox x:Name="PublicRosterList" Background="#0D1928" Foreground="#F3F6FA" BorderBrush="#30445C" />
+                                </GroupBox>
+                            </Grid>
+                        </TabItem>
+                        <TabItem x:Name="FavoritesTab" Header="המועדפים שלי" Visibility="Collapsed">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <WrapPanel Grid.Row="0" Margin="0,0,0,8">
+                                    <Button Content="רענן מועדפים" Style="{StaticResource SecondaryButtonStyle}" Click="RefreshFavorites_Click" Margin="0,0,6,0" />
+                                    <Button Content="הסר מהמועדפים" Style="{StaticResource SecondaryButtonStyle}" Click="RemoveFavorite_Click" />
+                                </WrapPanel>
+                                <ListBox x:Name="FavoritesList" Grid.Row="1" Background="#0D1928" Foreground="#F3F6FA" BorderBrush="#30445C" />
+                            </Grid>
+                        </TabItem>
+                        <TabItem x:Name="ManagerToolsTab" Header="ניהול מאמן" Visibility="Collapsed">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="10">
+                                <StackPanel>
+                                    <TextBlock Text="ניהול שחקנים" Foreground="#F3F6FA" FontSize="16" FontWeight="Bold" Margin="0,0,0,7" />
+                                    <ListBox x:Name="ManagerPlayersList" Height="115" Background="#0D1928" Foreground="#F3F6FA" BorderBrush="#30445C" SelectionChanged="ManagerPlayersList_SelectionChanged" />
+                                    <WrapPanel Margin="0,8,0,6">
+                                        <TextBox x:Name="ManagerPlayerFirstName" Width="115" Style="{StaticResource DarkTextBoxStyle}" ToolTip="שם פרטי" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerPlayerLastName" Width="115" Style="{StaticResource DarkTextBoxStyle}" ToolTip="שם משפחה" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerPlayerAge" Width="70" Style="{StaticResource DarkTextBoxStyle}" ToolTip="גיל" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerPlayerPosition" Width="90" Style="{StaticResource DarkTextBoxStyle}" ToolTip="עמדה" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerPlayerRating" Width="75" Style="{StaticResource DarkTextBoxStyle}" ToolTip="דירוג 0–100" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerPlayerSpeed" Width="75" Style="{StaticResource DarkTextBoxStyle}" ToolTip="מהירות" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerPlayerShooting" Width="75" Style="{StaticResource DarkTextBoxStyle}" ToolTip="בעיטות" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerPlayerPassing" Width="75" Style="{StaticResource DarkTextBoxStyle}" ToolTip="מסירות" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerPlayerDefense" Width="75" Style="{StaticResource DarkTextBoxStyle}" ToolTip="הגנה" Margin="0,0,5,5" />
+                                    </WrapPanel>
+                                    <WrapPanel Margin="0,0,0,14">
+                                        <Button Content="נקה טופס" Style="{StaticResource SecondaryButtonStyle}" Click="ClearPlayerForm_Click" Margin="0,0,6,0" />
+                                        <Button Content="שמור שחקן" Style="{StaticResource PrimaryButtonStyle}" Click="SavePlayer_Click" Margin="0,0,6,0" />
+                                        <Button Content="מחק שחקן" Style="{StaticResource SecondaryButtonStyle}" Click="DeletePlayer_Click" />
+                                    </WrapPanel>
+
+                                    <TextBlock Text="ניהול קבוצות וסגלים" Foreground="#F3F6FA" FontSize="16" FontWeight="Bold" Margin="0,0,0,7" />
+                                    <ListBox x:Name="ManagerTeamsList" Height="95" Background="#0D1928" Foreground="#F3F6FA" BorderBrush="#30445C" SelectionChanged="ManagerTeamsList_SelectionChanged" />
+                                    <WrapPanel Margin="0,8,0,6">
+                                        <TextBox x:Name="ManagerTeamName" Width="150" Style="{StaticResource DarkTextBoxStyle}" ToolTip="שם קבוצה" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerTeamCountry" Width="110" Style="{StaticResource DarkTextBoxStyle}" ToolTip="מדינה" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerTeamLeague" Width="130" Style="{StaticResource DarkTextBoxStyle}" ToolTip="ליגה" Margin="0,0,5,5" />
+                                        <TextBox x:Name="ManagerTeamBudget" Width="100" Style="{StaticResource DarkTextBoxStyle}" ToolTip="תקציב" Margin="0,0,5,5" />
+                                    </WrapPanel>
+                                    <WrapPanel Margin="0,0,0,10">
+                                        <Button Content="נקה טופס" Style="{StaticResource SecondaryButtonStyle}" Click="ClearTeamForm_Click" Margin="0,0,6,0" />
+                                        <Button Content="שמור קבוצה" Style="{StaticResource PrimaryButtonStyle}" Click="SaveTeam_Click" Margin="0,0,6,0" />
+                                        <Button Content="מחק קבוצה" Style="{StaticResource SecondaryButtonStyle}" Click="DeleteTeam_Click" />
+                                    </WrapPanel>
+                                    <TextBlock Text="הסגל הפעיל של הקבוצה" Foreground="#B9C7D6" Margin="0,0,0,5" />
+                                    <ListBox x:Name="ManagerRosterList" Height="72" Background="#0D1928" Foreground="#F3F6FA" BorderBrush="#30445C" Margin="0,0,0,8" />
+                                    <WrapPanel>
+                                        <ComboBox x:Name="RosterPlayerPicker" Width="220" Margin="0,0,6,0" />
+                                        <Button Content="הוסף לסגל" Style="{StaticResource SecondaryButtonStyle}" Click="AddRosterPlayer_Click" />
+                                        <Button Content="הסר מהסגל" Style="{StaticResource SecondaryButtonStyle}" Click="RemoveRosterPlayer_Click" Margin="6,0,0,0" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                    <DockPanel Grid.Row="2" Margin="0,9,0,0">
+                        <Button x:Name="AddFavoriteButton" Content="הוסף למועדפים" DockPanel.Dock="Right" Style="{StaticResource PrimaryButtonStyle}" Visibility="Collapsed" Click="AddFavorite_Click" />
+                        <TextBlock x:Name="ContentMessageText" Foreground="#BFD0E0" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    </DockPanel>
+                </Grid>
+
+                <Grid x:Name="AuthPanel" Visibility="Collapsed" FlowDirection="RightToLeft">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,14">
+                        <Button DockPanel.Dock="Left" Style="{StaticResource NavButtonStyle}" Content="← חזרה למסך האורח" Click="ShowGuest_Click" />
+                        <StackPanel>
+                            <TextBlock Text="גישה לחשבון" Foreground="#F3F6FA" FontSize="25" FontWeight="Bold" />
+                            <TextBlock Text="התחברות או יצירת חשבון חדש" Foreground="#91A2B7" FontSize="13" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Grid.Row="1" Background="{StaticResource PanelBrush}" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Top" Width="560">
+                        <TabControl x:Name="AuthTabs" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource DarkTabItemStyle}" FlowDirection="RightToLeft">
+                            <TabItem Header="התחברות">
+                                <StackPanel Margin="6,22,6,5">
+                                    <TextBlock Text="ברוך שובך" Foreground="#F3F6FA" FontSize="21" FontWeight="Bold" Margin="0,0,0,18" />
+                                    <TextBlock Text="שם משתמש" Style="{StaticResource FieldLabelStyle}" />
+                                    <TextBox x:Name="LoginUsernameTextBox" Style="{StaticResource DarkTextBoxStyle}" Margin="0,0,0,15" MaxLength="30" TextChanged="LoginInput_Changed" />
+                                    <TextBlock Text="סיסמה" Style="{StaticResource FieldLabelStyle}" />
+                                    <Grid Margin="0,0,0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <PasswordBox x:Name="LoginPasswordBox" Style="{StaticResource DarkPasswordBoxStyle}" MaxLength="128" PasswordChanged="LoginPassword_Changed" />
+                                        <TextBox x:Name="LoginPasswordTextBox" Grid.Column="0" Style="{StaticResource DarkTextBoxStyle}" MaxLength="128" Visibility="Collapsed" TextChanged="LoginPasswordText_Changed" />
+                                        <ToggleButton x:Name="LoginShowPasswordButton" Grid.Column="1" Style="{StaticResource PasswordEyeStyle}" Click="LoginShowPassword_Click" automation:AutomationProperties.Name="הצגה או הסתרה של הסיסמה" />
+                                    </Grid>
+                                    <TextBlock x:Name="LoginValidationText" Foreground="#FF8C83" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,10" />
+                                    <Button x:Name="LoginButton" Style="{StaticResource PrimaryButtonStyle}" Content="התחבר" Height="44" IsEnabled="False" Click="Login_Click" />
+                                    <TextBlock x:Name="LoginMessageText" Foreground="#BFD0E0" TextWrapping="Wrap" Margin="0,12,0,0" />
+                                </StackPanel>
+                            </TabItem>
+                            <TabItem Header="הרשמה">
+                                <StackPanel Margin="6,22,6,5">
+                                    <TextBlock Text="מצטרפים למועדון" Foreground="#F3F6FA" FontSize="21" FontWeight="Bold" Margin="0,0,0,18" />
+                                    <TextBlock Text="הרשמה לשחקן" Style="{StaticResource FieldLabelStyle}" />
+                                    <TextBlock Text="שם משתמש" Style="{StaticResource FieldLabelStyle}" />
+                                    <TextBox x:Name="RegisterUsernameTextBox" Style="{StaticResource DarkTextBoxStyle}" Margin="0,0,0,4" MaxLength="30" TextChanged="RegistrationInput_Changed" />
+                                    <TextBlock x:Name="RegisterUsernameHint" Foreground="#FF8C83" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,11" />
+                                    <TextBlock Text="סיסמה" Style="{StaticResource FieldLabelStyle}" />
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <PasswordBox x:Name="RegisterPasswordBox" Style="{StaticResource DarkPasswordBoxStyle}" MaxLength="128" PasswordChanged="RegisterPassword_Changed" />
+                                        <TextBox x:Name="RegisterPasswordTextBox" Style="{StaticResource DarkTextBoxStyle}" MaxLength="128" Visibility="Collapsed" TextChanged="RegisterPasswordText_Changed" />
+                                        <ToggleButton x:Name="RegisterShowPasswordButton" Grid.Column="1" Style="{StaticResource PasswordEyeStyle}" Click="RegisterShowPassword_Click" automation:AutomationProperties.Name="הצגה או הסתרה של הסיסמה" />
+                                    </Grid>
+                                    <TextBlock x:Name="RegisterPasswordHint" Foreground="#FF8C83" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,11" />
+                                    <TextBlock Text="אישור סיסמה" Style="{StaticResource FieldLabelStyle}" />
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <PasswordBox x:Name="RegisterConfirmPasswordBox" Style="{StaticResource DarkPasswordBoxStyle}" MaxLength="128" PasswordChanged="RegisterConfirmPassword_Changed" />
+                                        <TextBox x:Name="RegisterConfirmPasswordTextBox" Style="{StaticResource DarkTextBoxStyle}" MaxLength="128" Visibility="Collapsed" TextChanged="RegisterConfirmPasswordText_Changed" />
+                                        <ToggleButton x:Name="RegisterShowConfirmButton" Grid.Column="1" Style="{StaticResource PasswordEyeStyle}" Click="RegisterShowConfirm_Click" automation:AutomationProperties.Name="הצגה או הסתרה של אישור הסיסמה" />
+                                    </Grid>
+                                    <TextBlock x:Name="RegisterConfirmPasswordHint" Foreground="#FF8C83" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,11" />
+                                    <TextBlock x:Name="RegisterValidationText" Foreground="#91A2B7" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,9" />
+                                    <Button x:Name="RegisterButton" Style="{StaticResource PrimaryButtonStyle}" Content="יצירת חשבון" Height="44" IsEnabled="False" Click="Register_Click" />
+                                    <TextBlock x:Name="RegisterMessageText" Foreground="#BFD0E0" TextWrapping="Wrap" Margin="0,12,0,0" />
+                                    <TextBlock Text="ההרשמה הציבורית יוצרת חשבון שחקן. חשבון מאמן נפתח על ידי מנהל מערכת." Foreground="#71849A" FontSize="10" TextWrapping="Wrap" Margin="0,13,0,0" />
+                                </StackPanel>
+                            </TabItem>
+                        </TabControl>
+                    </Border>
+                </Grid>
+
+                <Grid x:Name="DashboardPanel" Visibility="Collapsed" FlowDirection="RightToLeft">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,18">
+                        <Button Content="התנתק" DockPanel.Dock="Left" Style="{StaticResource SecondaryButtonStyle}" Padding="16,8" Click="Logout_Click" />
+                        <StackPanel>
+                            <TextBlock Text="FootballManager" Foreground="#F3F6FA" FontSize="26" FontWeight="Bold" />
+                            <TextBlock x:Name="WelcomeText" Foreground="#91A2B7" FontSize="14" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Grid.Row="1" Background="#152438" Padding="14" CornerRadius="9" Margin="0,0,0,16">
+                        <TextBlock x:Name="RoleHomeText" Foreground="#E5ECF4" FontSize="15" TextWrapping="Wrap" />
+                    </Border>
+                    <UniformGrid x:Name="AdminCardsPanel" Grid.Row="2" Columns="4" Margin="0,0,0,12" Visibility="Collapsed">
+                        <Button Background="{StaticResource PanelBrush}" BorderBrush="#30445C" Padding="12" Margin="0,0,8,0" Click="AdminCardUsers_Click"><StackPanel><TextBlock Text="ניהול משתמשים" Foreground="#F3F6FA" FontWeight="Bold" /><TextBlock x:Name="AdminUsersCardValue" Text="טוען חשבונות…" Foreground="#8ED7B6" FontSize="11" Margin="0,5,0,0" /></StackPanel></Button>
+                        <Button Background="{StaticResource PanelBrush}" BorderBrush="#30445C" Padding="12" Margin="0,0,8,0" Click="AdminCardControl_Click"><StackPanel><TextBlock Text="בקרה" Foreground="#F3F6FA" FontWeight="Bold" /><TextBlock x:Name="AdminControlCardValue" Text="טוען חשבונות…" Foreground="#BFD0E0" FontSize="11" Margin="0,5,0,0" /></StackPanel></Button>
+                        <Button Background="{StaticResource PanelBrush}" BorderBrush="#30445C" Padding="12" Margin="0,0,8,0" Click="AdminCardStats_Click"><StackPanel><TextBlock Text="סטטיסטיקות" Foreground="#F3F6FA" FontWeight="Bold" /><TextBlock x:Name="AdminStatsCardValue" Text="טוען חשבונות…" Foreground="#BFD0E0" FontSize="11" Margin="0,5,0,0" /></StackPanel></Button>
+                        <Button Background="{StaticResource PanelBrush}" BorderBrush="#30445C" Padding="12" Click="AdminCardCommunication_Click"><StackPanel><TextBlock Text="תקשורת" Foreground="#F3F6FA" FontWeight="Bold" /><TextBlock x:Name="AdminCommunicationCardValue" Text="ספר משתמשים" Foreground="#BFD0E0" FontSize="11" Margin="0,5,0,0" /></StackPanel></Button>
+                    </UniformGrid>
+                    <GroupBox x:Name="AdminPanel" Grid.Row="3" Header="ניהול משתמשים" Foreground="#F3F6FA" Background="{StaticResource PanelBrush}" Visibility="Collapsed" Padding="14">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                                <Button Content="רענן רשימה" DockPanel.Dock="Left" Style="{StaticResource SecondaryButtonStyle}" Click="RefreshUsers_Click" />
+                                <TextBlock Text="שם משתמש | תפקיד | מצב" Foreground="#B9C7D6" VerticalAlignment="Center" FontWeight="SemiBold" />
+                            </DockPanel>
+                            <ListBox x:Name="AdminUsersList" Grid.Row="1" Background="#0D1928" Foreground="#F3F6FA" BorderBrush="#30445C" SelectionChanged="AdminUsersList_SelectionChanged" MinHeight="150" />
+                            <Border Grid.Row="2" Background="#0D1928" CornerRadius="8" Padding="10" Margin="0,10,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="יצירת חשבון חדש" Foreground="#F3F6FA" FontWeight="SemiBold" Margin="0,0,0,7" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.2*" />
+                                            <ColumnDefinition Width="1.2*" />
+                                            <ColumnDefinition Width="0.9*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="AdminNewUsernameTextBox" Grid.Column="0" Style="{StaticResource DarkTextBoxStyle}" MaxLength="30" ToolTip="שם משתמש" TextChanged="AdminCreateInput_Changed" Margin="0,0,6,0" />
+                                        <PasswordBox x:Name="AdminNewPasswordBox" Grid.Column="1" Style="{StaticResource DarkPasswordBoxStyle}" MaxLength="128" ToolTip="סיסמה התחלתית" PasswordChanged="AdminCreateInput_Changed" Margin="0,0,6,0" />
+                                        <ComboBox x:Name="AdminNewRoleComboBox" Grid.Column="2" SelectedIndex="0" SelectionChanged="AdminCreateRole_SelectionChanged" Margin="0,0,6,0">
+                                            <ComboBoxItem Content="שחקן" Tag="Player" />
+                                            <ComboBoxItem Content="מאמן" Tag="Manager" />
+                                            <ComboBoxItem Content="מנהל מערכת" Tag="Admin" />
+                                        </ComboBox>
+                                        <Button x:Name="CreateManagedUserButton" Grid.Column="3" Content="צור חשבון" Style="{StaticResource PrimaryButtonStyle}" IsEnabled="False" Click="CreateManagedUser_Click" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            <StackPanel Grid.Row="3" Margin="0,3,0,8">
+                                <TextBlock Text="תפקיד חדש" Foreground="#B9C7D6" Margin="0,0,0,4" />
+                                <ComboBox x:Name="AdminRoleComboBox" SelectionChanged="AdminRoleComboBox_SelectionChanged" SelectedIndex="0">
+                                    <ComboBoxItem Content="שחקן" Tag="Player" />
+                                    <ComboBoxItem Content="מאמן" Tag="Manager" />
+                                    <ComboBoxItem Content="מנהל מערכת" Tag="Admin" />
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Row="4">
+                                <WrapPanel>
+                                    <Button x:Name="ChangeRoleButton" Content="עדכן תפקיד" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" Margin="0,0,8,0" Click="ChangeRole_Click" />
+                                    <Button x:Name="BlockUserButton" Content="חסום משתמש" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" Click="BlockUser_Click" />
+                                    <Button x:Name="DeleteManagedUserButton" Content="מחק חשבון" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" Click="DeleteManagedUser_Click" />
+                                </WrapPanel>
+                                <TextBlock x:Name="AdminMessageText" Foreground="#BFD0E0" TextWrapping="Wrap" Margin="0,10,0,0" />
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+                    <TextBlock Grid.Row="4" Text="היכולות הזמינות תלויות בתפקיד המחובר." Foreground="#91A2B7" Margin="0,14,0,0" />
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

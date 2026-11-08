@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <title>FootballManager | הבית של המועדון</title>
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="FootballManager - דף הבית"><span class="brand-mark">FM</span><span>Football<span class="brand-light">Manager</span></span></a>
+    <nav class="main-nav" aria-label="ניווט ראשי">
+      <button data-view="home" class="nav-link active">בית</button>
+      <button data-view="players" class="nav-link">שחקנים</button>
+      <button data-view="teams" class="nav-link">קבוצות וסגלים</button>
+      <button id="dashboard-open" data-view="dashboard" class="nav-link hidden">האזור שלי</button>
+    </nav>
+    <div class="account-nav"><span id="account-label" class="account-label">אורח</span><button id="login-open" class="button button-quiet">כניסה</button><button id="register-open" class="button button-primary">הרשמה</button><button id="logout" class="button button-quiet hidden">יציאה</button></div>
+  </header>
+
+  <main class="page-wrap">
+    <section id="view-home" class="view active">
+      <div class="hero">
+        <div class="hero-copy"><span class="eyebrow"><i class="live-dot"></i> המועדון שלך. הנתונים שלך.</span><h1>המשחק מתחיל<br><em>מאחורי הקלעים.</em></h1><p>מידע על השחקנים, הקבוצות והסגלים — במקום אחד. התחבר כדי לנהל מועדפים או להיכנס לכלי הניהול לפי התפקיד שלך.</p><div class="hero-actions"><button class="button button-primary button-large" data-view="players">לצפייה בשחקנים <span>←</span></button><button class="button button-outline button-large" id="hero-register">פתיחת חשבון</button></div><div class="hero-footnote"><span class="hero-line"></span> נתוני שחקנים וקבוצות נטענים ממסד הנתונים</div></div>
+        <div class="hero-art"><img src="/images/football-pitch.png" alt="מגרש כדורגל מואר בלילה"><div class="art-tag"><span class="tag-number">01</span><span>ניהול מועדון<br><b>מתחיל כאן</b></span></div><div class="art-ring"></div></div>
+      </div>
+      <div class="section-heading"><div><span class="eyebrow">במבט מהיר</span><h2>לוח המשחקים</h2></div><span class="pill pill-muted">המחשה בלבד · יכולת משחקים בסבב 3</span></div>
+      <div class="fixture-grid"><article class="fixture"><div class="fixture-top"><span>ליגת העל</span><span class="fixture-date">מחזור 08</span></div><div class="fixture-teams"><b>מכבי נתניה</b><span class="fixture-vs">VS</span><b>הפועל חיפה</b></div><div class="fixture-bottom">משחק לדוגמה · לא תוצאה ממסד הנתונים</div></article><article class="fixture fixture-next"><div class="fixture-top"><span>המשחק הבא</span><span class="fixture-date">המחשה</span></div><div class="fixture-teams"><b>בני סכנין</b><span class="fixture-vs">VS</span><b>מכבי נתניה</b></div><div class="fixture-bottom">לוח משחקים אמיתי יתווסף בסבב 3</div></article></div>
+      <div class="feature-strip"><div><span class="feature-icon">◉</span><span><b>פרופילים ונתונים</b><small>חיפוש שחקנים לפי שם, עמדה ודירוג</small></span></div><div><span class="feature-icon">⌂</span><span><b>קבוצות וסגלים</b><small>הרכבים פעילים ופרטי מועדון</small></span></div><div><span class="feature-icon">♙</span><span><b>גישה לפי תפקיד</b><small>כל משתמש רואה את הכלים המתאימים לו</small></span></div></div>
+    </section>
+
+    <section id="view-players" class="view">
+      <div class="section-heading"><div><span class="eyebrow">מאגר המועדון</span><h2>שחקנים</h2><p class="muted">הנתונים נטענים מ־Access דרך שירות WCF.</p></div><div class="filter-row"><input id="player-search" type="search" placeholder="חיפוש שחקן" aria-label="חיפוש שחקן"><select id="position-filter" aria-label="סינון לפי עמדה"><option value="">כל העמדות</option><option>Goalkeeper</option><option>Defender</option><option>Midfielder</option><option>Forward</option></select><button id="player-search-button" class="button button-outline">חפש</button></div></div>
+      <div id="players-list" class="player-grid"></div><p id="players-message" class="status-message"></p>
+    </section>
+
+    <section id="view-teams" class="view">
+      <div class="section-heading"><div><span class="eyebrow">המועדונים</span><h2>קבוצות וסגלים</h2><p class="muted">בחר קבוצה כדי לראות את השחקנים המשויכים אליה.</p></div></div>
+      <div id="teams-list" class="team-grid"></div><div id="roster-panel" class="roster-panel hidden"><div class="section-heading"><div><span class="eyebrow">סגל פעיל</span><h3 id="roster-title">בחר קבוצה</h3></div></div><div id="roster-list" class="player-grid"></div></div><p id="teams-message" class="status-message"></p>
+    </section>
+
+    <section id="view-login" class="view auth-view">
+      <div class="auth-card"><div class="auth-brand"><span class="brand-mark">FM</span><span class="eyebrow">כניסה לחשבון</span></div><h2>טוב שחזרת.</h2><p class="muted">היכנס כדי להמשיך לאזור האישי שלך.</p><form id="login-form" novalidate><label>שם משתמש<input id="login-username" autocomplete="username" minlength="3" maxlength="30" required></label><label>סיסמה<span class="password-wrap"><input id="login-password" type="password" autocomplete="current-password" maxlength="128" required><button type="button" class="eye" data-toggle-password="login-password" aria-label="הצג סיסמה">◉</button></span></label><p id="login-message" class="form-message" aria-live="polite"></p><button id="login-submit" class="button button-primary button-full" disabled>התחברות</button></form><p class="auth-switch">חדש במועדון? <button id="switch-register" class="text-button">פתיחת חשבון שחקן</button></p></div>
+    </section>
+
+    <section id="view-register" class="view auth-view">
+      <div class="auth-card"><div class="auth-brand"><span class="brand-mark">FM</span><span class="eyebrow">הצטרפות למועדון</span></div><h2>החשבון שלך מתחיל כאן.</h2><p class="muted">הרשמה ציבורית פותחת חשבון Player בלבד.</p><form id="register-form" novalidate><label>שם משתמש<input id="register-username" autocomplete="username" minlength="3" maxlength="30" required><small id="register-user-hint" class="field-hint">3–30 תווים באנגלית, ספרות או קו תחתון.</small></label><label>סיסמה<span class="password-wrap"><input id="register-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required><button type="button" class="eye" data-toggle-password="register-password" aria-label="הצג סיסמה">◉</button></span><small id="register-password-hint" class="field-hint">לפחות 8 תווים.</small></label><label>אישור סיסמה<span class="password-wrap"><input id="register-confirm" type="password" autocomplete="new-password" maxlength="128" required><button type="button" class="eye" data-toggle-password="register-confirm" aria-label="הצג סיסמה">◉</button></span><small id="register-confirm-hint" class="field-hint"></small></label><p id="register-message" class="form-message" aria-live="polite"></p><button id="register-submit" class="button button-primary button-full" disabled>יצירת חשבון</button></form><p class="auth-switch">כבר יש לך חשבון? <button id="switch-login" class="text-button">כניסה</button></p></div>
+    </section>
+
+    <section id="view-dashboard" class="view dashboard-view">
+      <div class="section-heading"><div><span id="dashboard-eyebrow" class="eyebrow">האזור שלך</span><h2 id="dashboard-title">שלום</h2><p id="dashboard-subtitle" class="muted"></p></div></div>
+      <div id="player-dashboard" class="role-panel hidden"><div class="dashboard-card"><h3>המועדפים שלי</h3><p class="muted">רשימת השחקנים השמורה בחשבון שלך.</p><div id="favorites-list" class="compact-list"></div></div><button class="button button-outline" data-view="players">מעבר למאגר השחקנים</button></div>
+      <div id="manager-dashboard" class="role-panel hidden"><div class="manager-tools"><article class="dashboard-card"><span class="eyebrow">ניהול תוכן</span><h3>הוספת שחקן</h3><form id="manager-player-form" class="inline-form"><input id="manager-first" placeholder="שם פרטי" required maxlength="50"><input id="manager-last" placeholder="שם משפחה" required maxlength="50"><select id="manager-position"><option>Goalkeeper</option><option>Defender</option><option>Midfielder</option><option>Forward</option></select><input id="manager-age" type="number" min="1" max="120" value="21" aria-label="גיל"><input id="manager-rating" type="number" min="0" max="100" value="70" aria-label="דירוג"><button class="button button-primary" type="submit">שמור שחקן</button></form><p id="manager-message" class="form-message"></p></article><article class="dashboard-card"><span class="eyebrow">ניהול סגל</span><h3>שיוך שחקן לקבוצה</h3><div class="inline-form"><select id="manager-team-select" aria-label="קבוצה"></select><select id="manager-player-select" aria-label="שחקן"></select><button id="manager-assign" class="button button-outline">שייך לסגל</button></div><p class="muted small">פעולות Manager מאומתות בשירות WCF.</p></article></div><div class="dashboard-card"><h3>תוכן המערכת</h3><div id="manager-players-list" class="compact-list"></div></div></div>
+      <div id="admin-dashboard" class="role-panel hidden"><div class="admin-cards"><button class="admin-card selected" data-admin-section="users"><span>01 / חשבונות</span><b>ניהול משתמשים</b><small id="admin-users-count">טוען...</small></button><button class="admin-card" data-admin-section="control"><span>02 / בקרה</span><b>חשבונות חסומים</b><small id="admin-blocked-count">טוען...</small></button><button class="admin-card" data-admin-section="stats"><span>03 / תמונת מצב</span><b>סטטיסטיקה</b><small id="admin-stat-summary">טוען...</small></button><button class="admin-card" data-admin-section="communication"><span>04 / תקשורת</span><b>ספר משתמשים</b><small>מבוסס על רשומות Users</small></button></div><article class="dashboard-card admin-section"><div class="section-heading"><div><span id="admin-section-eyebrow" class="eyebrow">ניהול חשבונות</span><h3 id="admin-section-title">משתמשי המערכת</h3></div><button id="admin-refresh" class="button button-quiet">רענן</button></div><div id="admin-section-body"></div><div id="admin-create-area" class="admin-create"><h4>יצירת חשבון</h4><form id="admin-create-form" class="inline-form"><input id="admin-new-username" placeholder="שם משתמש" minlength="3" maxlength="30" required><input id="admin-new-password" type="password" placeholder="סיסמה התחלתית" minlength="8" maxlength="128" required><select id="admin-new-role"><option value="Player">Player</option><option value="Manager">Manager</option><option value="Admin">Admin</option></select><button class="button button-primary" type="submit">צור חשבון</button></form></div><p id="admin-message" class="form-message"></p></article></div>
+      <p id="dashboard-message" class="status-message"></p>
+    </section>
+
+    <section id="view-architecture" class="view">
+      <div class="section-heading"><div><span class="eyebrow">מאחורי המסך</span><h2>הלקוחות משתמשים בשירות</h2><p class="muted">יישום WPF והאתר עוברים דרך שכבת השירות. אין חיבור ישיר של לקוח למסד.</p></div></div>
+      <div class="architecture-flow"><article><span class="flow-number">01</span><b>לקוח WPF</b><small>יישום שולחני ב־C#</small></article><i>→</i><article class="flow-service"><span class="flow-number">02</span><b>WCF · CoreWCF</b><small>חוזים, הרשאות ולוגיקה</small><code>localhost:5152/FootballManagerService</code></article><i>→</i><article><span class="flow-number">03</span><b>Access</b><small>מסד הנתונים המקומי</small></article></div>
+      <div class="architecture-notes"><article class="dashboard-card"><span class="eyebrow">ערוץ WPF</span><h3>SOAP + DTOs משותפים</h3><p class="muted">FootballManager.WPF שולח בקשות דרך WcfServiceClient. פרויקט FootballManager.Contracts מגדיר את הנתונים שעוברים בין הלקוח לשירות.</p></article><article class="dashboard-card"><span class="eyebrow">שכבת השירות</span><h3>בדיקת Role לפני פעולה</h3><p class="muted">WCF בודק את החשבון הפעיל ואת התפקיד בכל פעולה מוגנת. הסתרת כפתור בממשק אינה מחליפה בדיקה זו.</p></article><article class="dashboard-card"><span class="eyebrow">אותו מקור נתונים</span><h3>WCF ↔ Microsoft Access</h3><p class="muted">רכיבי Data Access של השירות קוראים וכותבים למסד. WPF והאתר אינם פותחים חיבור Access בעצמם.</p></article></div>
+    </section>
+  </main>
+  <footer><a class="brand" href="#home"><span class="brand-mark">FM</span><span>Football<span class="brand-light">Manager</span></span></a><span>פרויקט לימודי · WPF + WCF + Access</span><button data-view="architecture" class="text-button">מבנה המערכת</button><span id="service-status" class="service-status"><i class="live-dot"></i> בודק שירות…</span></footer>
+  <script src="/site.js" defer></script>
+</body>
+</html>

@@ -1,5 +1,0 @@
-<Solution>
-  <Project Path="FootballManager.Contracts/FootballManager.Contracts.csproj" />
-  <Project Path="FootballManager.WCF/FootballManager.WCF.csproj" />
-  <Project Path="FootballManager.WPF/FootballManager.WPF.csproj" />
-</Solution>

@@ -1,49 +1,10 @@
-# Visual Studio and .NET build output
-.vs/
 **/bin/
 **/obj/
-[Bb]uild/
-[Dd]ebug/
-[Rr]elease/
-
-# User-specific IDE settings
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
-.vscode/
-.idea/
-
-# Temporary Access database locks
-*.laccdb
-*.ldb
-
-# Archives and local packages
-*.zip
-*.7z
-*.rar
-*.nupkg
-
-# Local secrets and environment files
-.env
-.env.*
-!.env.example
-secrets.json
-**/secrets/**
-**/UserSecrets/**
-*.publishsettings
-*.pubxml
-*.pfx
-*.p12
-*.key
-
-# Logs and temporary files
-*.log
-*.tmp
-*.temp
-*.bak
-*.cache
-
-# OS files
-.DS_Store
-Thumbs.db
+.vs/
+**/*.user
+**/*.suo
+**/*.laccdb
+**/*.cache
+**/work/
+**/פרטי-כניסה-פרטיים.txt
+**/credentials*.txt
