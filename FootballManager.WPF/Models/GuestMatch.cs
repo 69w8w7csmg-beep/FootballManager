@@ -1,7 +1,8 @@
+// משחקי הדגמה לאורח במסך C2. שמות הקבוצות זהים לשמות שבמסד ההגשה.
 namespace FootballManager.WPF.Models;
 
 /// <summary>
-/// A clearly labeled sample fixture used until public match data is added to the database.
+/// תצוגת הדגמה ציבורית שהיתה קיימת כבר ב־C2.
 /// </summary>
 public sealed class GuestMatch
 {
@@ -17,42 +18,42 @@ public sealed class GuestMatch
     [
         new()
         {
-            League = "ליגת הדגמה",
-            HomeTeam = "עירוני השרון",
-            AwayTeam = "הפועל החוף",
+            League = "ליגת העל",
+            HomeTeam = "מכבי נתניה",
+            AwayTeam = "הפועל חיפה",
             ScoreOrTime = "2 : 1",
             StatusLabel = "הסתיים",
-            MatchDate = "יום ראשון · 18:30",
+            MatchDate = "03.11.2026",
             IsFinished = true
         },
         new()
         {
-            League = "ליגת הדגמה",
-            HomeTeam = "מכבי כרמל",
-            AwayTeam = "בית״ר העמק",
+            League = "ליגת העל",
+            HomeTeam = "הפועל חיפה",
+            AwayTeam = "בני סכנין",
             ScoreOrTime = "1 : 1",
             StatusLabel = "הסתיים",
-            MatchDate = "יום שבת · 20:00",
+            MatchDate = "07.11.2026",
             IsFinished = true
         },
         new()
         {
-            League = "ליגת הדגמה",
-            HomeTeam = "הפועל הגבעה",
-            AwayTeam = "עירוני הנגב",
-            ScoreOrTime = "19:45",
-            StatusLabel = "בקרוב",
-            MatchDate = "יום שלישי · 19:45",
-            IsFinished = false
+            League = "ליגת העל",
+            HomeTeam = "בני סכנין",
+            AwayTeam = "מכבי נתניה",
+            ScoreOrTime = "0 : 2",
+            StatusLabel = "הסתיים",
+            MatchDate = "10.11.2026",
+            IsFinished = true
         },
         new()
         {
-            League = "ליגת הדגמה",
-            HomeTeam = "מכבי המפרץ",
-            AwayTeam = "הפועל הגליל",
+            League = "ליגת העל",
+            HomeTeam = "מכבי נתניה",
+            AwayTeam = "בני סכנין",
             ScoreOrTime = "20:30",
             StatusLabel = "בקרוב",
-            MatchDate = "יום חמישי · 20:30",
+            MatchDate = "26.11.2026 · 20:30",
             IsFinished = false
         }
     ];

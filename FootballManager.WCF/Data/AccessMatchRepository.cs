@@ -1,3 +1,4 @@
+// שליפה, שמירה ומחיקה של משחקים בטבלת Matches במסד Access.
 using System.Data.OleDb;
 using FootballManager.Contracts;
 

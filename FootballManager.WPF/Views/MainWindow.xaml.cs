@@ -1,3 +1,4 @@
+// טיפול בתצוגה ובאירועי החלון הראשי. בדיקות טפסי החשבון נמצאות ב־ViewModel.
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -12,16 +13,12 @@ public partial class MainWindow : Window
 {
     private readonly WcfServiceClient _serviceClient = new();
     private readonly AccountSessionViewModel _session = new();
-    private readonly IReadOnlyList<GuestMatch> _demoFixtures = GuestMatch.DemoFixtures;
+    private readonly AuthenticationViewModel _authentication = new();
+    private readonly GuestMatchesViewModel _guestMatches = new();
     private IReadOnlyList<ManagedUserDto> _cachedManagedUsers = [];
     private bool _syncingLoginPassword;
     private bool _syncingRegisterPassword;
     private bool _syncingRegisterConfirmation;
-    private bool _loginUsernameTouched;
-    private bool _loginPasswordTouched;
-    private bool _registerUsernameTouched;
-    private bool _registerPasswordTouched;
-    private bool _registerConfirmationTouched;
     private string _sessionToken => _session.SessionToken;
     private string _currentRole => _session.Role;
     private string _currentUsername => _session.Username;
@@ -475,12 +472,7 @@ public partial class MainWindow : Window
         SetMatchFilterAppearance(FinishedMatchesFilter, filter == "Finished");
         SetMatchFilterAppearance(UpcomingMatchesFilter, filter == "Upcoming");
 
-        var filtered = filter switch
-        {
-            "Finished" => _demoFixtures.Where(match => match.IsFinished).ToList(),
-            "Upcoming" => _demoFixtures.Where(match => !match.IsFinished).ToList(),
-            _ => _demoFixtures.ToList()
-        };
+        var filtered = _guestMatches.Filter(filter);
 
         MatchesListBox.ItemsSource = filtered;
         MatchesListBox.SelectedIndex = filtered.Count == 0 ? -1 : 0;
@@ -510,7 +502,7 @@ public partial class MainWindow : Window
 
     private void LoginInput_Changed(object sender, TextChangedEventArgs e)
     {
-        _loginUsernameTouched = true;
+        _authentication.LoginUsernameTouched = true;
         UpdateLoginValidation();
     }
 
@@ -521,7 +513,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _loginPasswordTouched = true;
+        _authentication.LoginPasswordTouched = true;
         _syncingLoginPassword = true;
         LoginPasswordTextBox.Text = LoginPasswordBox.Password;
         _syncingLoginPassword = false;
@@ -535,7 +527,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _loginPasswordTouched = true;
+        _authentication.LoginPasswordTouched = true;
         _syncingLoginPassword = true;
         LoginPasswordBox.Password = LoginPasswordTextBox.Text;
         _syncingLoginPassword = false;
@@ -560,7 +552,7 @@ public partial class MainWindow : Window
 
     private void RegistrationInput_Changed(object sender, TextChangedEventArgs e)
     {
-        _registerUsernameTouched = true;
+        _authentication.RegisterUsernameTouched = true;
         UpdateRegistrationValidation();
     }
 
@@ -571,7 +563,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _registerPasswordTouched = true;
+        _authentication.RegisterPasswordTouched = true;
         _syncingRegisterPassword = true;
         RegisterPasswordTextBox.Text = RegisterPasswordBox.Password;
         _syncingRegisterPassword = false;
@@ -585,7 +577,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _registerPasswordTouched = true;
+        _authentication.RegisterPasswordTouched = true;
         _syncingRegisterPassword = true;
         RegisterPasswordBox.Password = RegisterPasswordTextBox.Text;
         _syncingRegisterPassword = false;
@@ -599,7 +591,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _registerConfirmationTouched = true;
+        _authentication.RegisterConfirmationTouched = true;
         _syncingRegisterConfirmation = true;
         RegisterConfirmPasswordTextBox.Text = RegisterConfirmPasswordBox.Password;
         _syncingRegisterConfirmation = false;
@@ -613,7 +605,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _registerConfirmationTouched = true;
+        _authentication.RegisterConfirmationTouched = true;
         _syncingRegisterConfirmation = true;
         RegisterConfirmPasswordBox.Password = RegisterConfirmPasswordTextBox.Text;
         _syncingRegisterConfirmation = false;
@@ -654,83 +646,27 @@ public partial class MainWindow : Window
 
     private void UpdateLoginValidation()
     {
-        var usernameError = ValidateUsername(LoginUsernameTextBox.Text);
-        var passwordError = ValidatePassword(LoginPassword);
-        LoginValidationText.Text = _loginUsernameTouched && usernameError is not null
-            ? usernameError
-            : _loginPasswordTouched && passwordError is not null
-                ? passwordError
-                : string.Empty;
-
-        LoginButton.IsEnabled = usernameError is null && passwordError is null;
+        var validation = _authentication.EvaluateLogin(LoginUsernameTextBox.Text, LoginPassword);
+        LoginValidationText.Text = validation.Message;
+        LoginButton.IsEnabled = validation.CanSubmit;
     }
 
     private void UpdateRegistrationValidation()
     {
-        var usernameError = ValidateUsername(RegisterUsernameTextBox.Text);
-        var passwordError = ValidatePassword(RegistrationPassword);
-        var confirmation = RegistrationConfirmation;
-        string? confirmationError = null;
-
-        if (_registerConfirmationTouched)
-        {
-            confirmationError = confirmation.Length == 0
-                ? "יש להזין שוב את הסיסמה לאישור."
-                : RegistrationPassword != confirmation
-                    ? "הסיסמאות אינן תואמות."
-                    : null;
-        }
-
-        SetRegistrationHint(RegisterUsernameHint, _registerUsernameTouched ? usernameError : null);
-        SetRegistrationHint(RegisterPasswordHint, _registerPasswordTouched ? passwordError : null);
-        SetRegistrationHint(RegisterConfirmPasswordHint, confirmationError);
-
-        var allFieldsValid = usernameError is null && passwordError is null &&
-            confirmation.Length > 0 && confirmationError is null;
-
-        var hasStartedTyping = _registerUsernameTouched || _registerPasswordTouched || _registerConfirmationTouched;
-        RegisterValidationText.Text = !hasStartedTyping
-            ? string.Empty
-            : allFieldsValid
-                ? "הפרטים תקינים ואפשר להמשיך."
-                : "ההערות יופיעו ליד השדות בזמן ההקלדה.";
-        RegisterValidationText.Foreground = allFieldsValid ? Brushes.LightGreen : Brushes.LightGray;
-        RegisterButton.IsEnabled = allFieldsValid;
+        var validation = _authentication.EvaluateRegistration(
+            RegisterUsernameTextBox.Text, RegistrationPassword, RegistrationConfirmation);
+        SetRegistrationHint(RegisterUsernameHint, validation.UsernameHint);
+        SetRegistrationHint(RegisterPasswordHint, validation.PasswordHint);
+        SetRegistrationHint(RegisterConfirmPasswordHint, validation.ConfirmationHint);
+        RegisterValidationText.Text = validation.Message;
+        RegisterValidationText.Foreground = validation.CanSubmit ? Brushes.LightGreen : Brushes.LightGray;
+        RegisterButton.IsEnabled = validation.CanSubmit;
     }
 
     private static void SetRegistrationHint(TextBlock hint, string? message)
     {
         hint.Text = message ?? string.Empty;
         hint.Visibility = string.IsNullOrEmpty(message) ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    private static string? ValidateUsername(string? username)
-    {
-        if (string.IsNullOrWhiteSpace(username))
-        {
-            return "יש להזין שם משתמש.";
-        }
-
-        if (username.Length < 3 || username.Length > 30)
-        {
-            return "שם המשתמש צריך להכיל 3 עד 30 תווים.";
-        }
-
-        return username.Any(character => !char.IsAsciiLetterOrDigit(character) && character != '_')
-            ? "אפשר להשתמש רק באותיות באנגלית, ספרות וקו תחתון."
-            : null;
-    }
-
-    private static string? ValidatePassword(string? password)
-    {
-        if (string.IsNullOrEmpty(password))
-        {
-            return "יש להזין סיסמה.";
-        }
-
-        return password.Length < 8 || password.Length > 128
-            ? "הסיסמה צריכה להכיל 8 עד 128 תווים."
-            : null;
     }
 
     private async void Register_Click(object sender, RoutedEventArgs e)
@@ -847,7 +783,7 @@ public partial class MainWindow : Window
         LoginShowPasswordButton.IsChecked = false;
         LoginPasswordBox.Visibility = Visibility.Visible;
         LoginPasswordTextBox.Visibility = Visibility.Collapsed;
-        _loginPasswordTouched = false;
+        _authentication.LoginPasswordTouched = false;
         UpdateLoginValidation();
     }
 
@@ -989,8 +925,8 @@ public partial class MainWindow : Window
         var roleSelected = AdminNewRoleComboBox.SelectedItem is ComboBoxItem item &&
             item.Tag?.ToString() is "Player" or "Manager" or "Admin";
         CreateManagedUserButton.IsEnabled =
-            ValidateUsername(AdminNewUsernameTextBox.Text) is null &&
-            ValidatePassword(AdminNewPasswordBox.Password) is null &&
+            AuthenticationViewModel.ValidateUsername(AdminNewUsernameTextBox.Text) is null &&
+            AuthenticationViewModel.ValidatePassword(AdminNewPasswordBox.Password) is null &&
             roleSelected;
     }
 

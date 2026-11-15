@@ -1,6 +1,6 @@
 # FootballManager — משחקים ותוצאות, סבב 3
 
-הפתרון כולל את לקוח WPF, שירות SOAP של CoreWCF, אתר C2 ואת פרויקט FootballManager.Contracts המשותף. מסד ההדגמה נמצא ב־FootballManager.WCF/Data/FootballManager.accdb. הוא כבר מכיל את החשבונות, הקבוצות, השחקנים והמשחקים הדרושים להדגמה.
+הפתרון כולל את לקוח WPF, שירות SOAP של CoreWCF, אתר C2 ואת פרויקט FootballManager.Contracts המשותף. מסד ההדגמה נמצא ב־FootballManager.WCF/Data/FootballManager.accdb. הוא כבר מכיל את החשבונות, הקבוצות, השחקנים והמשחקים הדרושים להדגמה. שמות הקבוצות במסד ובמסכי WPF תואמים בעברית: מכבי נתניה, הפועל חיפה ובני סכנין.
 
 ## הפעלה מקומית ב־Windows
 

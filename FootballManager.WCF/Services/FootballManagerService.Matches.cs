@@ -1,3 +1,4 @@
+// פעולות משחקים ב־WCF, כולל אימות הרשאה לכל אחד מארבעת סוגי המשתמשים.
 using System.Data.OleDb;
 using System.Net;
 using CoreWCF;

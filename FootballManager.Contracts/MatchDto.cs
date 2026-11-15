@@ -1,3 +1,4 @@
+// נתוני המשחק ותשובת השליפה המשותפים ללקוח WPF ולשירות WCF.
 using System.Runtime.Serialization;
 
 namespace FootballManager.Contracts;

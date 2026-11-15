@@ -1,3 +1,4 @@
+// פקודות ותצוגת משחקים ב־WPF. הגישה לנתונים מתבצעת דרך לקוח שירות WCF.
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;

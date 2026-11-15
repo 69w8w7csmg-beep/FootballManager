@@ -1,3 +1,4 @@
+// קורא את קוד תשובת HTTP כדי להציג בלקוח את החסימות 401 ו־403 מהשרת.
 using System.Net;
 using System.Net.Http;
 using System.ServiceModel.Channels;

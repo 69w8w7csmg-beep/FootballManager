@@ -1,3 +1,4 @@
+<!-- מסך משחקים ותוצאות ל־Player ול־Manager, מחובר ל־MatchesViewModel. -->
 <Window x:Class="FootballManager.WPF.Views.MatchesWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

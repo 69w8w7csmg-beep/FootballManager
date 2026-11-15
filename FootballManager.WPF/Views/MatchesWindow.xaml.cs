@@ -1,3 +1,4 @@
+// חלון המשחקים מציג נתונים ופקודות שמגיעים מ־MatchesViewModel.
 using System.Windows;
 using FootballManager.WPF.Services;
 using FootballManager.WPF.ViewModels;

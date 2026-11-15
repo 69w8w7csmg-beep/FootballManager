@@ -1,3 +1,4 @@
+// גישה לנתוני הכדורגל ויצירת נתוני הדגמה עקביים למסכי WPF ולמסד Access.
 using System.Data.OleDb;
 using FootballManager.Contracts;
 
@@ -54,16 +55,32 @@ public sealed class AccessFootballRepository
     {
         var teams = new[]
         {
-            new TeamDto { Name = "Maccabi Netanya", Country = "Israel", League = "Ligat ha'Al", Budget = 1250000m },
-            new TeamDto { Name = "Hapoel Haifa", Country = "Israel", League = "Ligat ha'Al", Budget = 980000m },
-            new TeamDto { Name = "Bnei Sakhnin", Country = "Israel", League = "Ligat ha'Al", Budget = 760000m }
+            new TeamDto { Name = "מכבי נתניה", Country = "ישראל", League = "ליגת העל", Budget = 1250000m },
+            new TeamDto { Name = "הפועל חיפה", Country = "ישראל", League = "ליגת העל", Budget = 980000m },
+            new TeamDto { Name = "בני סכנין", Country = "ישראל", League = "ליגת העל", Budget = 760000m }
         };
-        foreach (var team in teams)
+        var previousNames = new[] { "Maccabi Netanya", "Hapoel Haifa", "Bnei Sakhnin" };
+        for (var index = 0; index < teams.Length; index++)
         {
-            if (!GetTeams().Any(existing => existing.Name == team.Name))
+            var team = teams[index];
+            var existingTeams = GetTeams();
+            if (existingTeams.Any(existing => existing.Name == team.Name))
             {
-                SaveTeam(team);
+                continue;
             }
+
+            // מסד C2 ישן משתמש בשמות באנגלית. שומרים על המזהים ועל קשרי הסגל והמשחקים.
+            var previous = existingTeams.FirstOrDefault(existing => existing.Name == previousNames[index]);
+            if (previous is not null)
+            {
+                previous.Name = team.Name;
+                previous.Country = team.Country;
+                previous.League = team.League;
+                SaveTeam(previous);
+                continue;
+            }
+
+            SaveTeam(team);
         }
 
         var players = new[]
@@ -95,9 +112,9 @@ public sealed class AccessFootballRepository
         var allPlayers = GetPlayers(string.Empty, string.Empty, 0, 100);
         var assignments = new[]
         {
-            (Team: "Maccabi Netanya", Players: new[] { "Noam Levi", "Omer Cohen", "Daniel Mizrahi", "Eitan Barak" }),
-            (Team: "Hapoel Haifa", Players: new[] { "Ariel Peretz", "Yarden Shahar", "Itay Dahan", "Lior Avraham" }),
-            (Team: "Bnei Sakhnin", Players: new[] { "Matan Azulay", "Yuval Nissim", "Roi Sasson", "Gal Malka" })
+            (Team: "מכבי נתניה", Players: new[] { "Noam Levi", "Omer Cohen", "Daniel Mizrahi", "Eitan Barak" }),
+            (Team: "הפועל חיפה", Players: new[] { "Ariel Peretz", "Yarden Shahar", "Itay Dahan", "Lior Avraham" }),
+            (Team: "בני סכנין", Players: new[] { "Matan Azulay", "Yuval Nissim", "Roi Sasson", "Gal Malka" })
         };
         foreach (var assignment in assignments)
         {
