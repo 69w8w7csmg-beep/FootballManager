@@ -7,6 +7,18 @@ public sealed class WcfServiceClient
 {
     private const string ServiceAddress = "http://localhost:5152/FootballManagerService";
 
+    public Task<MatchesResponseDto> GetMatchesAsync(string sessionToken, string searchText = "", DateTime? matchDate = null) =>
+        InvokeMatchAsync(service => service.GetMatches(sessionToken, searchText, matchDate),
+            message => new MatchesResponseDto { Message = message });
+
+    public Task<OperationResultDto> SaveMatchAsync(string sessionToken, MatchDto match) =>
+        InvokeMatchAsync(service => service.SaveMatch(sessionToken, match),
+            message => new OperationResultDto { Message = message });
+
+    public Task<OperationResultDto> DeleteMatchAsync(string sessionToken, int matchId) =>
+        InvokeMatchAsync(service => service.DeleteMatch(sessionToken, matchId),
+            message => new OperationResultDto { Message = message });
+
     public Task<ServiceStatusDto> GetServiceStatusAsync() =>
         Task.Run(() => Invoke(service => service.GetServiceStatus()));
 
@@ -76,7 +88,27 @@ public sealed class WcfServiceClient
     public Task<OperationResultDto> RemovePlayerFromTeamAsync(string sessionToken, int teamId, int playerId) =>
         Task.Run(() => Invoke(service => service.RemovePlayerFromTeam(sessionToken, teamId, playerId)));
 
-    private static T Invoke<T>(Func<IFootballManagerService, T> operation)
+    private static Task<T> InvokeMatchAsync<T>(Func<IFootballManagerService, T> operation, Func<string, T> denied)
+    {
+        return Task.Run(() =>
+        {
+            var http = new MatchHttpStatus();
+            try
+            {
+                return Invoke(operation, http);
+            }
+            catch (System.ServiceModel.Security.MessageSecurityException) when (http.Status == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return denied("401 Unauthorized · נדרשת התחברות פעילה.");
+            }
+            catch (System.ServiceModel.Security.MessageSecurityException) when (http.Status == System.Net.HttpStatusCode.Forbidden)
+            {
+                return denied("403 Forbidden · לַחשבון זה אין הרשאה לבצע את הפעולה.");
+            }
+        });
+    }
+
+    private static T Invoke<T>(Func<IFootballManagerService, T> operation, MatchHttpStatus? http = null)
     {
         var binding = new BasicHttpBinding(BasicHttpSecurityMode.None)
         {
@@ -84,6 +116,10 @@ public sealed class WcfServiceClient
         };
         var address = new EndpointAddress(ServiceAddress);
         var factory = new ChannelFactory<IFootballManagerService>(binding, address);
+        if (http is not null)
+        {
+            factory.Endpoint.EndpointBehaviors.Add(http);
+        }
         var channel = factory.CreateChannel();
         var communication = (ICommunicationObject)channel;
 

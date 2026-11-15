@@ -1,31 +1,34 @@
-# FootballManager C2
+# FootballManager — משחקים ותוצאות, סבב 3
 
-פתרון מחזור 2 של FootballManager: לקוח WPF, שירות SOAP באמצעות CoreWCF, אתר הדגמה מקומי ונתוני Microsoft Access.
+הפתרון כולל את לקוח WPF, שירות SOAP של CoreWCF, אתר C2 ואת פרויקט FootballManager.Contracts המשותף. מסד ההדגמה נמצא ב־FootballManager.WCF/Data/FootballManager.accdb. הוא כבר מכיל את החשבונות, הקבוצות, השחקנים והמשחקים הדרושים להדגמה.
 
-## מבנה
+## הפעלה מקומית ב־Windows
 
-- `FootballManager.WPF` — לקוח שולחני, Views, ViewModels, Models, Services, Images ו־Resources.
-- `FootballManager.WCF` — שירות CoreWCF, פעולות HTTP של האתר, לוגיקת הרשאות וגישה למסד Access.
-- `FootballManager.Contracts` — חוזים ו־DTOs משותפים.
-- `FootballManager_C2.accdb` — מסד ההגשה; עותק העבודה נמצא גם ב־`FootballManager.WCF/Data`.
-- `FootballManager_C2_דרישות_סופיות.docx` — מסמך הדרישות המעודכן.
-- `FootballManager_C2_הדגמה.webm` — סרטון הדגמה.
-
-## הפעלה
-
-דרושים .NET 10 SDK ו־Microsoft Access Database Engine (ACE OLE DB) 64-bit.
+נדרשים .NET 10 SDK ו־Microsoft ACE OLE DB 16.0 בגרסת 64 סיביות. מחלצים את קוד המקור לתיקייה מקומית שיש בה הרשאת כתיבה. מתיקיית הפתרון מפעילים ב־PowerShell:
 
 ```powershell
-dotnet build .\FootballManager.WPF.slnx
+dotnet build .\FootballManager.WPF.sln
 dotnet run --project .\FootballManager.WCF\FootballManager.WCF.csproj
 ```
 
-השירות והאתר זמינים מקומית ב־`http://localhost:5152/`. להפעלת WPF, בחלון נוסף:
+משאירים את השירות פועל. מחלון PowerShell שני, באותה תיקייה, מפעילים את הלקוח:
 
 ```powershell
 dotnet run --project .\FootballManager.WPF\FootballManager.WPF.csproj
 ```
 
-WPF מתקשר עם WCF באמצעות SOAP. רק WCF ניגש למסד.
+כתובת השירות היא http://localhost:5152/FootballManagerService והאתר של C2 זמין ב־http://localhost:5152/. רק השרת פותח את קובץ Access.
 
-פרטי כניסה להדגמה נשמרים מחוץ למאגר; במסד יש hashes בלבד. אין להעלות סיסמאות גלויות.
+## התנסות במשחקים
+
+1. נכנסים ל־WPF עם DemoManager ובוחרים במשחקים ותוצאות. בוחרים משחק, משנים תוצאה ושומרים, או יוצרים משחק בין שתי קבוצות קיימות. טעינה חוזרת מציגה את הערכים מהשירות.
+2. מתחברים עם DemoPlayer. ניתן לחפש לפי קבוצה ותאריך ולצפות בתוצאות. ניסיון שמירה בחשבון זה מגיע לשרת ומציג 403. בקשת שירות ללא התחברות מקבלת 401. חשבון Admin ממשיך לנהל משתמשים בדשבורד.
+3. אפשר לפתוח את רשימת השחקנים או את סגל הקבוצה כדי לראות גם את תוכן C2.
+
+## סיסמאות להדגמה מקומית
+
+המסד מכיל גיבובי סיסמאות. כדי לקבל סיסמאות הדגמה משלכם, עוצרים את השירות ומריצים על עותק העבודה המקומי את הפקודה הבאה. היא מקצה סיסמאות חדשות לשלושת חשבונות ההדגמה ומציגה אותן פעם אחת. לאחר מכן מפעילים שוב את השירות.
+
+```powershell
+dotnet run --project .\FootballManager.WCF\FootballManager.WCF.csproj -- --prepare-demo-accounts
+```

@@ -24,7 +24,7 @@ WSDL: `http://localhost:5152/FootballManagerService?wsdl`.
 
 ## Demo database and accounts
 
-The packaged database contains eight tables, three accounts, and sample C2 football content. The three demo accounts are one `Admin`, one `Manager`, and one `Player`; their plaintext passwords are kept in a separate private file outside the source ZIP. Password hashes only are stored in Access.
+The packaged database contains eight tables, three accounts, and sample C2 football content, and sample matches for Cycle 3. The three demo accounts are one `Admin`, one `Manager`, and one `Player`; their plaintext passwords are kept in a separate private file outside the source ZIP. Password hashes only are stored in Access.
 
 For a new local database, create the first Admin, create the other two accounts, add the sample content, then prepare fresh random demo passwords:
 
@@ -35,7 +35,7 @@ dotnet run --project .\FootballManager.WCF\FootballManager.WCF.csproj -- --seed-
 dotnet run --project .\FootballManager.WCF\FootballManager.WCF.csproj -- --prepare-demo-accounts
 ```
 
-`--seed-demo-content` is safe to repeat. It inserts three fictional teams, twelve fictional player records, and their active roster links only when missing. Matches, statistics, and transfers remain empty because they belong to later cycles. `--prepare-demo-accounts` assigns new random passwords to the existing Admin, `DemoManager`, and `DemoPlayer`, stores password hashes, and prints the passwords once. Keep that output private and outside the submission ZIP.
+`--seed-demo-content` is safe to repeat. It inserts three fictional teams, twelve fictional player records, and their active roster links only when missing. The supplied database also includes sample matches between the seeded teams. Statistics and transfers belong to later cycles. `--prepare-demo-accounts` assigns new random passwords to the existing Admin, `DemoManager`, and `DemoPlayer`, stores password hashes, and prints the passwords once. Keep that output private and outside the submission ZIP.
 
 The public Register operation accepts only a username and password and always creates a `Player`. The browser stores the short-lived session in an `HttpOnly`, same-site cookie. WCF checks the active user's current role for each protected action. The website's Admin communication card is an account directory based on `Users`; it does not claim to send messages because the approved schema has no contact details or message storage.
 

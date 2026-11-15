@@ -51,6 +51,9 @@ public partial class MainWindow : Window
 
     private void OpenLogin_Click(object sender, RoutedEventArgs e) => OpenAuthentication(0);
 
+    private void OpenMatches_Click(object sender, RoutedEventArgs e) =>
+        new MatchesWindow(_serviceClient, _session) { Owner = this }.ShowDialog();
+
     private void OpenPlayerRegistration_Click(object sender, RoutedEventArgs e) => OpenRegistration();
 
     private void OpenRegistration()
@@ -439,7 +442,13 @@ public partial class MainWindow : Window
         await RefreshManagerRosterAsync(team.TeamId);
     }
 
-    private void ShowMatches_Click(object sender, RoutedEventArgs e) => ApplyMatchFilter("All");
+    private void ShowMatches_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentRole is "Player" or "Manager")
+            OpenMatches_Click(sender, e);
+        else
+            ApplyMatchFilter("All");
+    }
 
     private void ShowLineups_Click(object sender, RoutedEventArgs e)
     {
@@ -781,6 +790,7 @@ public partial class MainWindow : Window
             };
             AdminPanel.Visibility = _currentRole == "Admin" ? Visibility.Visible : Visibility.Collapsed;
             AdminCardsPanel.Visibility = _currentRole == "Admin" ? Visibility.Visible : Visibility.Collapsed;
+            OpenMatchesButton.Visibility = _currentRole is "Player" or "Manager" ? Visibility.Visible : Visibility.Collapsed;
             AuthPanel.Visibility = Visibility.Collapsed;
             ContentBrowsePanel.Visibility = Visibility.Collapsed;
             GuestHomePanel.Visibility = Visibility.Collapsed;
@@ -819,6 +829,7 @@ public partial class MainWindow : Window
         }
 
         _session.Clear();
+        OpenMatchesButton.Visibility = Visibility.Collapsed;
         _cachedManagedUsers = [];
         AdminUsersList.ItemsSource = null;
         AdminPanel.Visibility = Visibility.Collapsed;

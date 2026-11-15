@@ -1,0 +1,145 @@
+<Window x:Class="FootballManager.WPF.Views.MatchesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="משחקים ותוצאות | FootballManager" Width="920" Height="610"
+        MinWidth="750" MinHeight="530" WindowStartupLocation="CenterOwner"
+        FlowDirection="RightToLeft" Language="he-IL" FontFamily="Segoe UI"
+        Background="#0B1421" Foreground="#F3F6FA" FontSize="14">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FootballManager.WPF;component/Resources/FootballManagerTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="VisibleIf" />
+            <Style x:Key="ActionButton" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                <Setter Property="Background" Value="#20354C" />
+                <Setter Property="Padding" Value="14,6" />
+                <Setter Property="MinHeight" Value="32" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="ButtonSurface" CornerRadius="5" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonSurface" Property="Opacity" Value="0.85"/></Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="ButtonSurface" Property="Opacity" Value="0.45"/></Trigger>
+                                <Trigger Property="IsPressed" Value="True"><Setter TargetName="ButtonSurface" Property="Opacity" Value="0.7"/></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="Label" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#C6D2DF"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Margin" Value="0,0,0,3"/>
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="Padding" Value="6,3"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="MinHeight" Value="28"/>
+            </Style>
+            <Style TargetType="ComboBox"><Setter Property="MinHeight" Value="28"/></Style>
+            <Style TargetType="DataGridColumnHeader">
+                <Setter Property="Background" Value="#243950"/>
+                <Setter Property="Foreground" Value="#DDE8F1"/>
+                <Setter Property="Padding" Value="9,6"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Margin="20,14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,10">
+            <Button x:Name="CloseMatchesButton" Content="חזרה" Style="{StaticResource ActionButton}" DockPanel.Dock="Left"
+                    IsCancel="True" VerticalAlignment="Center"/>
+            <StackPanel>
+                <TextBlock Text="משחקים ותוצאות" FontSize="26" FontWeight="Bold"/>
+                <TextBlock Text="{Binding AccountLabel}" Foreground="#A4C6DB" Margin="0,1,0,0"/>
+            </StackPanel>
+        </DockPanel>
+        <Border Grid.Row="1" Padding="12,7" Margin="0,0,0,8" Background="{StaticResource PanelBrush}" CornerRadius="6">
+            <WrapPanel IsEnabled="{Binding Ready}">
+                <StackPanel Margin="0,0,0,0" Width="190">
+                    <TextBlock Text="חיפוש לפי שם קבוצה" Style="{StaticResource Label}"/>
+                    <TextBox x:Name="SearchMatchesInput" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             AutomationProperties.Name="חיפוש לפי שם קבוצה"/>
+                </StackPanel>
+                <StackPanel Margin="10,0" Width="140">
+                    <TextBlock Text="תאריך המשחק" Style="{StaticResource Label}"/>
+                    <DatePicker x:Name="FilterDateInput" SelectedDate="{Binding FilterDate}" AutomationProperties.Name="סינון לפי תאריך"/>
+                </StackPanel>
+                <Button x:Name="RefreshMatchesButton" Content="חיפוש ורענון" Command="{Binding Refresh}" Style="{StaticResource ActionButton}" VerticalAlignment="Bottom"/>
+                <Button Content="ניקוי סינון" Command="{Binding ClearFilters}" Style="{StaticResource ActionButton}" VerticalAlignment="Bottom" Margin="6,0"/>
+            </WrapPanel>
+        </Border>
+        <DataGrid x:Name="MatchesList" Grid.Row="2" ItemsSource="{Binding Matches}" SelectedItem="{Binding SelectedMatch, Mode=TwoWay}"
+                  IsReadOnly="True" IsEnabled="{Binding Ready}" AutoGenerateColumns="False" SelectionMode="Single" SelectionUnit="FullRow"
+                  CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" HeadersVisibility="Column" RowHeight="35"
+                  HorizontalGridLinesBrush="#24354A" VerticalGridLinesBrush="Transparent" BorderBrush="#26394C"
+                  Background="#101F30" Foreground="#F3F6FA" RowBackground="#142538" AlternatingRowBackground="#192B40">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="משחק" Binding="{Binding MatchId}" Width="62"/>
+                <DataGridTextColumn Header="תאריך" Binding="{Binding MatchDate, StringFormat={}{0:dd/MM/yyyy}}" Width="110"/>
+                <DataGridTextColumn Header="קבוצת בית" Binding="{Binding HomeTeamName}" Width="*"/>
+                <DataGridTextColumn Header="שערי בית" Binding="{Binding HomeScore}" Width="75"/>
+                <DataGridTextColumn Header="שערי חוץ" Binding="{Binding AwayScore}" Width="75"/>
+                <DataGridTextColumn Header="קבוצת חוץ" Binding="{Binding AwayTeamName}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Border Grid.Row="3" Visibility="{Binding IsManager, Converter={StaticResource VisibleIf}}" Background="#152639"
+                CornerRadius="6" Padding="12,8" Margin="0,8,0,0">
+            <StackPanel IsEnabled="{Binding Ready}">
+                <DockPanel Margin="0,0,0,6">
+                    <Button x:Name="NewMatchButton" Content="משחק חדש" Command="{Binding New}" DockPanel.Dock="Left" Style="{StaticResource ActionButton}"/>
+                    <TextBlock Text="{Binding EditorTitle}" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </DockPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="138"/>
+                        <ColumnDefinition Width="76"/><ColumnDefinition Width="76"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,0,4">
+                        <TextBlock Text="קבוצת בית" Style="{StaticResource Label}"/>
+                        <ComboBox x:Name="HomeTeamInput" ItemsSource="{Binding Teams}" SelectedValuePath="TeamId" DisplayMemberPath="Name"
+                                  SelectedValue="{Binding HomeTeamId}" AutomationProperties.Name="קבוצת בית"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="6,0,0,4">
+                        <TextBlock Text="קבוצת חוץ" Style="{StaticResource Label}"/>
+                        <ComboBox x:Name="AwayTeamInput" ItemsSource="{Binding Teams}" SelectedValuePath="TeamId" DisplayMemberPath="Name"
+                                  SelectedValue="{Binding AwayTeamId}" AutomationProperties.Name="קבוצת חוץ"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Margin="6,0,0,4">
+                        <TextBlock Text="תאריך המשחק" Style="{StaticResource Label}"/>
+                        <DatePicker x:Name="MatchDateInput" SelectedDate="{Binding MatchDate}" AutomationProperties.Name="תאריך המשחק"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Margin="6,0,0,4">
+                        <TextBlock Text="שערי בית" Style="{StaticResource Label}"/>
+                        <TextBox x:Name="HomeScoreInput" Text="{Binding HomeScore, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="שערי בית"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="4" Margin="6,0,0,4">
+                        <TextBlock Text="שערי חוץ" Style="{StaticResource Label}"/>
+                        <TextBox x:Name="AwayScoreInput" Text="{Binding AwayScore, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="שערי חוץ"/>
+                    </StackPanel>
+                </Grid>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <Button x:Name="SaveMatchButton" Content="שמירת משחק ותוצאה" Command="{Binding Save}" Style="{StaticResource ActionButton}"
+                            Foreground="#102032" Background="{StaticResource AccentBrush}" FontWeight="SemiBold"/>
+                    <Button x:Name="DeleteMatchButton" Content="מחיקת משחק" Command="{Binding Delete}" Style="{StaticResource ActionButton}" Margin="8,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+        <Button Grid.Row="3" x:Name="PlayerWriteAttemptButton" Visibility="{Binding IsPlayer, Converter={StaticResource VisibleIf}}"
+                Content="בדיקת הרשאה לשמירת התוצאה שנבחרה" Command="{Binding TrySaveResult}" Style="{StaticResource ActionButton}"
+                Margin="0,8,0,0" HorizontalAlignment="Right"/>
+        <Border Grid.Row="4" CornerRadius="4" Background="#112D32" Padding="10,6" Margin="0,8,0,0">
+            <TextBlock x:Name="MatchStatus" Text="{Binding Status}" Foreground="#D5EFEB" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+        </Border>
+    </Grid>
+</Window>

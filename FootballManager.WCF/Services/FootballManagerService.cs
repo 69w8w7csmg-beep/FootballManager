@@ -7,11 +7,12 @@ using FootballManager.WCF.Data;
 namespace FootballManager.WCF.Services;
 
 [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall)]
-public sealed class FootballManagerService : IFootballManagerService
+public sealed partial class FootballManagerService : IFootballManagerService
 {
     private readonly AccessDatabase _database;
     private readonly AccessUserRepository _users;
     private readonly AccessFootballRepository _football;
+    private readonly AccessMatchRepository _matches;
     private readonly PasswordHasher<UserRecord> _passwordHasher;
     private readonly LoginSessionStore _sessions;
 
@@ -19,12 +20,14 @@ public sealed class FootballManagerService : IFootballManagerService
         AccessDatabase database,
         AccessUserRepository users,
         AccessFootballRepository football,
+        AccessMatchRepository matches,
         PasswordHasher<UserRecord> passwordHasher,
         LoginSessionStore sessions)
     {
         _database = database;
         _users = users;
         _football = football;
+        _matches = matches;
         _passwordHasher = passwordHasher;
         _sessions = sessions;
     }

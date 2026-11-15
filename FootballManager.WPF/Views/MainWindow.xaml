@@ -635,6 +635,8 @@
                     <Border Grid.Row="1" Background="#152438" Padding="14" CornerRadius="9" Margin="0,0,0,16">
                         <TextBlock x:Name="RoleHomeText" Foreground="#E5ECF4" FontSize="15" TextWrapping="Wrap" />
                     </Border>
+                    <Button x:Name="OpenMatchesButton" Grid.Row="2" Content="משחקים ותוצאות" Style="{StaticResource PrimaryButtonStyle}"
+                            HorizontalAlignment="Right" Padding="20,10" Margin="0,0,0,12" Visibility="Collapsed" Click="OpenMatches_Click"/>
                     <UniformGrid x:Name="AdminCardsPanel" Grid.Row="2" Columns="4" Margin="0,0,0,12" Visibility="Collapsed">
                         <Button Background="{StaticResource PanelBrush}" BorderBrush="#30445C" Padding="12" Margin="0,0,8,0" Click="AdminCardUsers_Click"><StackPanel><TextBlock Text="ניהול משתמשים" Foreground="#F3F6FA" FontWeight="Bold" /><TextBlock x:Name="AdminUsersCardValue" Text="טוען חשבונות…" Foreground="#8ED7B6" FontSize="11" Margin="0,5,0,0" /></StackPanel></Button>
                         <Button Background="{StaticResource PanelBrush}" BorderBrush="#30445C" Padding="12" Margin="0,0,8,0" Click="AdminCardControl_Click"><StackPanel><TextBlock Text="בקרה" Foreground="#F3F6FA" FontWeight="Bold" /><TextBlock x:Name="AdminControlCardValue" Text="טוען חשבונות…" Foreground="#BFD0E0" FontSize="11" Margin="0,5,0,0" /></StackPanel></Button>
