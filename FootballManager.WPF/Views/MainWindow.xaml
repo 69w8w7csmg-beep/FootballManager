@@ -635,8 +635,19 @@
                     <Border Grid.Row="1" Background="#152438" Padding="14" CornerRadius="9" Margin="0,0,0,16">
                         <TextBlock x:Name="RoleHomeText" Foreground="#E5ECF4" FontSize="15" TextWrapping="Wrap" />
                     </Border>
-                    <Button x:Name="OpenMatchesButton" Grid.Row="2" Content="משחקים ותוצאות" Style="{StaticResource PrimaryButtonStyle}"
-                            HorizontalAlignment="Right" Padding="20,10" Margin="0,0,0,12" Visibility="Collapsed" Click="OpenMatches_Click"/>
+                    <StackPanel Grid.Row="2" HorizontalAlignment="Right" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="OpenMatchesButton" Content="משחקים ותוצאות" Style="{StaticResource PrimaryButtonStyle}"
+                                    Padding="20,10" Visibility="Collapsed" Click="OpenMatches_Click"/>
+                            <Button x:Name="OpenCycle4Button" Content="העברות וסטטיסטיקות" Style="{StaticResource PrimaryButtonStyle}"
+                                    Padding="20,10" Margin="8,0,0,0" Visibility="Collapsed" Click="OpenCycle4_Click"/>
+                            <Button x:Name="PlayerTransferAttemptButton" Content="בדיקת הרשאה להעברה"
+                                    Style="{StaticResource SecondaryButtonStyle}" Padding="20,10" Margin="8,0,0,0"
+                                    Visibility="Collapsed" Click="PlayerTransferAttempt_Click"/>
+                        </StackPanel>
+                        <TextBlock x:Name="PlayerTransferStatus" Foreground="#D5EFEB" TextWrapping="Wrap"
+                                   Visibility="Collapsed" Margin="0,8,0,0" AutomationProperties.LiveSetting="Polite"/>
+                    </StackPanel>
                     <UniformGrid x:Name="AdminCardsPanel" Grid.Row="2" Columns="4" Margin="0,0,0,12" Visibility="Collapsed">
                         <Button Background="{StaticResource PanelBrush}" BorderBrush="#30445C" Padding="12" Margin="0,0,8,0" Click="AdminCardUsers_Click"><StackPanel><TextBlock Text="ניהול משתמשים" Foreground="#F3F6FA" FontWeight="Bold" /><TextBlock x:Name="AdminUsersCardValue" Text="טוען חשבונות…" Foreground="#8ED7B6" FontSize="11" Margin="0,5,0,0" /></StackPanel></Button>
                         <Button Background="{StaticResource PanelBrush}" BorderBrush="#30445C" Padding="12" Margin="0,0,8,0" Click="AdminCardControl_Click"><StackPanel><TextBlock Text="בקרה" Foreground="#F3F6FA" FontWeight="Bold" /><TextBlock x:Name="AdminControlCardValue" Text="טוען חשבונות…" Foreground="#BFD0E0" FontSize="11" Margin="0,5,0,0" /></StackPanel></Button>

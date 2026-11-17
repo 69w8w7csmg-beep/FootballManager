@@ -13,6 +13,8 @@ public sealed partial class FootballManagerService : IFootballManagerService
     private readonly AccessUserRepository _users;
     private readonly AccessFootballRepository _football;
     private readonly AccessMatchRepository _matches;
+    private readonly AccessTransferRepository _transfers;
+    private readonly AccessPlayerStatisticRepository _statistics;
     private readonly PasswordHasher<UserRecord> _passwordHasher;
     private readonly LoginSessionStore _sessions;
 
@@ -21,6 +23,8 @@ public sealed partial class FootballManagerService : IFootballManagerService
         AccessUserRepository users,
         AccessFootballRepository football,
         AccessMatchRepository matches,
+        AccessTransferRepository transfers,
+        AccessPlayerStatisticRepository statistics,
         PasswordHasher<UserRecord> passwordHasher,
         LoginSessionStore sessions)
     {
@@ -28,6 +32,8 @@ public sealed partial class FootballManagerService : IFootballManagerService
         _users = users;
         _football = football;
         _matches = matches;
+        _transfers = transfers;
+        _statistics = statistics;
         _passwordHasher = passwordHasher;
         _sessions = sessions;
     }

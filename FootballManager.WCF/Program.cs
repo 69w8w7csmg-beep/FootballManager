@@ -49,6 +49,8 @@ builder.Services.AddSingleton(database);
 builder.Services.AddSingleton<AccessUserRepository>();
 builder.Services.AddSingleton<AccessFootballRepository>();
 builder.Services.AddSingleton<AccessMatchRepository>();
+builder.Services.AddSingleton<AccessTransferRepository>();
+builder.Services.AddSingleton<AccessPlayerStatisticRepository>();
 builder.Services.AddSingleton<PasswordHasher<UserRecord>>();
 builder.Services.AddSingleton<LoginSessionStore>();
 builder.Services.AddTransient<FootballManagerService>();

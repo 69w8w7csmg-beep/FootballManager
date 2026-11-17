@@ -1,0 +1,224 @@
+<!-- מסכי מאמן לסבב 4: העברות וסטטיסטיקות שחקנים דרך שירות WCF. -->
+<Window x:Class="FootballManager.WPF.Views.Cycle4Window"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="העברות וסטטיסטיקות | FootballManager"
+        Width="1040" Height="710" MinWidth="850" MinHeight="610"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft" Language="he-IL"
+        FontFamily="Segoe UI" FontSize="14" Background="#0B1421" Foreground="#F3F6FA">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FootballManager.WPF;component/Resources/FootballManagerTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="ActionButton" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                <Setter Property="Background" Value="#20354C"/>
+                <Setter Property="Padding" Value="14,6"/>
+                <Setter Property="MinHeight" Value="32"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Surface" CornerRadius="5" Background="{TemplateBinding Background}"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="Opacity" Value="0.85"/></Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Surface" Property="Opacity" Value="0.45"/></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="FieldLabel" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#C6D2DF"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Margin" Value="0,0,0,3"/>
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="Padding" Value="6,3"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="MinHeight" Value="28"/>
+            </Style>
+            <Style TargetType="ComboBox"><Setter Property="MinHeight" Value="28"/></Style>
+            <Style TargetType="DataGridColumnHeader">
+                <Setter Property="Background" Value="#243950"/>
+                <Setter Property="Foreground" Value="#DDE8F1"/>
+                <Setter Property="Padding" Value="9,6"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Margin="20,14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,10">
+            <Button x:Name="CloseCycle4Button" Content="חזרה" DockPanel.Dock="Left"
+                    Style="{StaticResource ActionButton}" Click="Close_Click"/>
+            <StackPanel>
+                <TextBlock Text="העברות וסטטיסטיקות" FontSize="26" FontWeight="Bold"/>
+                <TextBlock Text="{Binding AccountLabel}" Foreground="#A4C6DB" Margin="0,1,0,0"/>
+            </StackPanel>
+        </DockPanel>
+        <TabControl x:Name="Cycle4Tabs" Grid.Row="1" Background="#101F30" Foreground="#F3F6FA">
+            <TabItem x:Name="TransfersTab" Header="העברות">
+                <Grid Margin="12,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="TransfersList" ItemsSource="{Binding Transfers}" SelectedItem="{Binding SelectedTransfer, Mode=TwoWay}"
+                              IsReadOnly="True" IsEnabled="{Binding Ready}" AutoGenerateColumns="False" SelectionMode="Single"
+                              SelectionUnit="FullRow" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column"
+                              RowHeight="35" HorizontalGridLinesBrush="#24354A" VerticalGridLinesBrush="Transparent"
+                              BorderBrush="#26394C" Background="#101F30" Foreground="#F3F6FA"
+                              RowBackground="#142538" AlternatingRowBackground="#192B40">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="מספר" Binding="{Binding TransferId}" Width="65"/>
+                            <DataGridTextColumn Header="תאריך" Binding="{Binding TransferDate, StringFormat={}{0:dd/MM/yyyy}}" Width="110"/>
+                            <DataGridTextColumn Header="שחקן" Binding="{Binding PlayerName}" Width="*"/>
+                            <DataGridTextColumn Header="מקבוצה" Binding="{Binding FromTeamName}" Width="*"/>
+                            <DataGridTextColumn Header="לקבוצה" Binding="{Binding ToTeamName}" Width="*"/>
+                            <DataGridTextColumn Header="מחיר" Binding="{Binding Price, StringFormat={}{0:N0}}" Width="125"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Border Grid.Row="1" Background="#152639" CornerRadius="6" Padding="12,10" Margin="0,9,0,0">
+                        <StackPanel IsEnabled="{Binding Ready}">
+                            <DockPanel Margin="0,0,0,7">
+                                <Button x:Name="NewTransferButton" Content="העברה חדשה" Command="{Binding NewTransfer}"
+                                        DockPanel.Dock="Left" Style="{StaticResource ActionButton}"/>
+                                <TextBlock Text="{Binding TransferEditorTitle}" FontSize="17" FontWeight="SemiBold"/>
+                            </DockPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/><ColumnDefinition Width="1.6*"/><ColumnDefinition Width="1.6*"/>
+                                    <ColumnDefinition Width="1.3*"/><ColumnDefinition Width="1.2*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="שחקן" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox x:Name="TransferPlayerInput" ItemsSource="{Binding Players}" SelectedValuePath="PlayerId"
+                                              SelectedValue="{Binding TransferPlayerId}" AutomationProperties.Name="שחקן בהעברה"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                    <TextBlock Text="מקבוצה" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox x:Name="FromTeamInput" ItemsSource="{Binding Teams}" SelectedValuePath="TeamId"
+                                              DisplayMemberPath="Name" SelectedValue="{Binding FromTeamId}"
+                                              AutomationProperties.Name="קבוצת מקור"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Margin="6,0,0,0">
+                                    <TextBlock Text="לקבוצה" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox x:Name="ToTeamInput" ItemsSource="{Binding Teams}" SelectedValuePath="TeamId"
+                                              DisplayMemberPath="Name" SelectedValue="{Binding ToTeamId}"
+                                              AutomationProperties.Name="קבוצת יעד"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3" Margin="6,0,0,0">
+                                    <TextBlock Text="תאריך" Style="{StaticResource FieldLabel}"/>
+                                    <DatePicker x:Name="TransferDateInput" SelectedDate="{Binding TransferDate}"
+                                                AutomationProperties.Name="תאריך העברה"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4" Margin="6,0,0,0">
+                                    <TextBlock Text="מחיר" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="TransferPriceInput" Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}"
+                                             AutomationProperties.Name="מחיר העברה"/>
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,9,0,0">
+                                <Button x:Name="SaveTransferButton" Content="שמירת העברה" Command="{Binding SaveTransfer}"
+                                        Style="{StaticResource ActionButton}" Foreground="#102032"
+                                        Background="{StaticResource AccentBrush}" FontWeight="SemiBold"/>
+                                <Button x:Name="DeleteTransferButton" Content="מחיקת העברה" Command="{Binding DeleteTransfer}"
+                                        Style="{StaticResource ActionButton}" Margin="8,0"/>
+                                <Button x:Name="RefreshTransfersButton" Content="רענון" Command="{Binding RefreshTransfers}"
+                                        Style="{StaticResource ActionButton}" Margin="8,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="StatisticsTab" Header="סטטיסטיקות שחקנים">
+                <Grid Margin="12,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="StatisticsList" ItemsSource="{Binding Statistics}" SelectedItem="{Binding SelectedStatistic, Mode=TwoWay}"
+                              IsReadOnly="True" IsEnabled="{Binding Ready}" AutoGenerateColumns="False" SelectionMode="Single"
+                              SelectionUnit="FullRow" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column"
+                              RowHeight="35" HorizontalGridLinesBrush="#24354A" VerticalGridLinesBrush="Transparent"
+                              BorderBrush="#26394C" Background="#101F30" Foreground="#F3F6FA"
+                              RowBackground="#142538" AlternatingRowBackground="#192B40">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="מספר" Binding="{Binding StatisticId}" Width="62"/>
+                            <DataGridTextColumn Header="שחקן" Binding="{Binding PlayerName}" Width="*"/>
+                            <DataGridTextColumn Header="משחק" Binding="{Binding MatchLabel}" Width="2*"/>
+                            <DataGridTextColumn Header="שערים" Binding="{Binding Goals}" Width="75"/>
+                            <DataGridTextColumn Header="בישולים" Binding="{Binding Assists}" Width="82"/>
+                            <DataGridTextColumn Header="דקות" Binding="{Binding MinutesPlayed}" Width="72"/>
+                            <DataGridTextColumn Header="דירוג" Binding="{Binding Rating}" Width="75"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Border Grid.Row="1" Background="#152639" CornerRadius="6" Padding="12,10" Margin="0,9,0,0">
+                        <StackPanel IsEnabled="{Binding Ready}">
+                            <DockPanel Margin="0,0,0,7">
+                                <Button x:Name="NewStatisticButton" Content="סטטיסטיקה חדשה" Command="{Binding NewStatistic}"
+                                        DockPanel.Dock="Left" Style="{StaticResource ActionButton}"/>
+                                <TextBlock Text="{Binding StatisticEditorTitle}" FontSize="17" FontWeight="SemiBold"/>
+                            </DockPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.7*"/><ColumnDefinition Width="2.8*"/><ColumnDefinition Width="0.75*"/>
+                                    <ColumnDefinition Width="0.75*"/><ColumnDefinition Width="0.75*"/><ColumnDefinition Width="0.75*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="שחקן" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox x:Name="StatisticPlayerInput" ItemsSource="{Binding Players}" SelectedValuePath="PlayerId"
+                                              SelectedValue="{Binding StatisticPlayerId}" AutomationProperties.Name="שחקן בסטטיסטיקה"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                    <TextBlock Text="משחק" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox x:Name="StatisticMatchInput" ItemsSource="{Binding MatchOptions}" SelectedValuePath="MatchId"
+                                              DisplayMemberPath="Label" SelectedValue="{Binding StatisticMatchId}"
+                                              AutomationProperties.Name="משחק בסטטיסטיקה"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Margin="6,0,0,0">
+                                    <TextBlock Text="שערים" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="GoalsInput" Text="{Binding Goals, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3" Margin="6,0,0,0">
+                                    <TextBlock Text="בישולים" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="AssistsInput" Text="{Binding Assists, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4" Margin="6,0,0,0">
+                                    <TextBlock Text="דקות" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MinutesInput" Text="{Binding MinutesPlayed, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="5" Margin="6,0,0,0">
+                                    <TextBlock Text="דירוג" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="RatingInput" Text="{Binding Rating, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,9,0,0">
+                                <Button x:Name="SaveStatisticButton" Content="שמירת סטטיסטיקה" Command="{Binding SaveStatistic}"
+                                        Style="{StaticResource ActionButton}" Foreground="#102032"
+                                        Background="{StaticResource AccentBrush}" FontWeight="SemiBold"/>
+                                <Button x:Name="DeleteStatisticButton" Content="מחיקת סטטיסטיקה" Command="{Binding DeleteStatistic}"
+                                        Style="{StaticResource ActionButton}" Margin="8,0"/>
+                                <Button x:Name="RefreshStatisticsButton" Content="רענון" Command="{Binding RefreshStatistics}"
+                                        Style="{StaticResource ActionButton}" Margin="8,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Border Grid.Row="2" CornerRadius="4" Background="#112D32" Padding="10,6" Margin="0,9,0,0">
+            <TextBlock x:Name="Cycle4Status" Text="{Binding Status}" Foreground="#D5EFEB"
+                       TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+        </Border>
+    </Grid>
+</Window>

@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     private readonly AccountSessionViewModel _session = new();
     private readonly AuthenticationViewModel _authentication = new();
     private readonly GuestMatchesViewModel _guestMatches = new();
+    private TransferDto? _lastSavedTransfer;
     private IReadOnlyList<ManagedUserDto> _cachedManagedUsers = [];
     private bool _syncingLoginPassword;
     private bool _syncingRegisterPassword;
@@ -50,6 +51,46 @@ public partial class MainWindow : Window
 
     private void OpenMatches_Click(object sender, RoutedEventArgs e) =>
         new MatchesWindow(_serviceClient, _session) { Owner = this }.ShowDialog();
+
+    private void OpenCycle4_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentRole != "Manager") return;
+        new Cycle4Window(_serviceClient, _session, RememberSavedTransfer) { Owner = this }.ShowDialog();
+    }
+
+    private void RememberSavedTransfer(TransferDto transfer)
+    {
+        // שומרים העתק של הבקשה האחרונה כדי להראות שחסימת השחקן חלה על אותה פעולה.
+        _lastSavedTransfer = new TransferDto
+        {
+            TransferId = transfer.TransferId,
+            PlayerId = transfer.PlayerId,
+            FromTeamId = transfer.FromTeamId,
+            ToTeamId = transfer.ToTeamId,
+            TransferDate = transfer.TransferDate,
+            Price = transfer.Price
+        };
+    }
+
+    private async void PlayerTransferAttempt_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentRole != "Player" || _lastSavedTransfer is null) return;
+        PlayerTransferAttemptButton.IsEnabled = false;
+        try
+        {
+            var result = await _serviceClient.SaveTransferAsync(_sessionToken, _lastSavedTransfer);
+            PlayerTransferStatus.Text = result.Message;
+        }
+        catch (Exception exception)
+        {
+            PlayerTransferStatus.Text = $"לא הצלחתי לפנות לשירות. {exception.GetBaseException().Message}";
+        }
+        finally
+        {
+            PlayerTransferStatus.Visibility = Visibility.Visible;
+            PlayerTransferAttemptButton.IsEnabled = true;
+        }
+    }
 
     private void OpenPlayerRegistration_Click(object sender, RoutedEventArgs e) => OpenRegistration();
 
@@ -727,6 +768,11 @@ public partial class MainWindow : Window
             AdminPanel.Visibility = _currentRole == "Admin" ? Visibility.Visible : Visibility.Collapsed;
             AdminCardsPanel.Visibility = _currentRole == "Admin" ? Visibility.Visible : Visibility.Collapsed;
             OpenMatchesButton.Visibility = _currentRole is "Player" or "Manager" ? Visibility.Visible : Visibility.Collapsed;
+            OpenCycle4Button.Visibility = _currentRole == "Manager" ? Visibility.Visible : Visibility.Collapsed;
+            PlayerTransferAttemptButton.Visibility = _currentRole == "Player" && _lastSavedTransfer is not null
+                ? Visibility.Visible : Visibility.Collapsed;
+            PlayerTransferStatus.Text = string.Empty;
+            PlayerTransferStatus.Visibility = Visibility.Collapsed;
             AuthPanel.Visibility = Visibility.Collapsed;
             ContentBrowsePanel.Visibility = Visibility.Collapsed;
             GuestHomePanel.Visibility = Visibility.Collapsed;
@@ -766,6 +812,9 @@ public partial class MainWindow : Window
 
         _session.Clear();
         OpenMatchesButton.Visibility = Visibility.Collapsed;
+        OpenCycle4Button.Visibility = Visibility.Collapsed;
+        PlayerTransferAttemptButton.Visibility = Visibility.Collapsed;
+        PlayerTransferStatus.Visibility = Visibility.Collapsed;
         _cachedManagedUsers = [];
         AdminUsersList.ItemsSource = null;
         AdminPanel.Visibility = Visibility.Collapsed;

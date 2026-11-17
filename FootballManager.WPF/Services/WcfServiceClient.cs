@@ -7,16 +7,40 @@ public sealed class WcfServiceClient
 {
     private const string ServiceAddress = "http://localhost:5152/FootballManagerService";
 
+    public Task<TransfersResponseDto> GetTransfersAsync(string sessionToken) =>
+        InvokeRoleProtectedAsync(service => service.GetTransfers(sessionToken),
+            message => new TransfersResponseDto { Message = message });
+
+    public Task<OperationResultDto> SaveTransferAsync(string sessionToken, TransferDto transfer) =>
+        InvokeRoleProtectedAsync(service => service.SaveTransfer(sessionToken, transfer),
+            message => new OperationResultDto { Message = message });
+
+    public Task<OperationResultDto> DeleteTransferAsync(string sessionToken, int transferId) =>
+        InvokeRoleProtectedAsync(service => service.DeleteTransfer(sessionToken, transferId),
+            message => new OperationResultDto { Message = message });
+
+    public Task<PlayerStatisticsResponseDto> GetPlayerStatisticsAsync(string sessionToken) =>
+        InvokeRoleProtectedAsync(service => service.GetPlayerStatistics(sessionToken),
+            message => new PlayerStatisticsResponseDto { Message = message });
+
+    public Task<OperationResultDto> SavePlayerStatisticAsync(string sessionToken, PlayerStatisticDto statistic) =>
+        InvokeRoleProtectedAsync(service => service.SavePlayerStatistic(sessionToken, statistic),
+            message => new OperationResultDto { Message = message });
+
+    public Task<OperationResultDto> DeletePlayerStatisticAsync(string sessionToken, int statisticId) =>
+        InvokeRoleProtectedAsync(service => service.DeletePlayerStatistic(sessionToken, statisticId),
+            message => new OperationResultDto { Message = message });
+
     public Task<MatchesResponseDto> GetMatchesAsync(string sessionToken, string searchText = "", DateTime? matchDate = null) =>
-        InvokeMatchAsync(service => service.GetMatches(sessionToken, searchText, matchDate),
+        InvokeRoleProtectedAsync(service => service.GetMatches(sessionToken, searchText, matchDate),
             message => new MatchesResponseDto { Message = message });
 
     public Task<OperationResultDto> SaveMatchAsync(string sessionToken, MatchDto match) =>
-        InvokeMatchAsync(service => service.SaveMatch(sessionToken, match),
+        InvokeRoleProtectedAsync(service => service.SaveMatch(sessionToken, match),
             message => new OperationResultDto { Message = message });
 
     public Task<OperationResultDto> DeleteMatchAsync(string sessionToken, int matchId) =>
-        InvokeMatchAsync(service => service.DeleteMatch(sessionToken, matchId),
+        InvokeRoleProtectedAsync(service => service.DeleteMatch(sessionToken, matchId),
             message => new OperationResultDto { Message = message });
 
     public Task<ServiceStatusDto> GetServiceStatusAsync() =>
@@ -88,11 +112,11 @@ public sealed class WcfServiceClient
     public Task<OperationResultDto> RemovePlayerFromTeamAsync(string sessionToken, int teamId, int playerId) =>
         Task.Run(() => Invoke(service => service.RemovePlayerFromTeam(sessionToken, teamId, playerId)));
 
-    private static Task<T> InvokeMatchAsync<T>(Func<IFootballManagerService, T> operation, Func<string, T> denied)
+    private static Task<T> InvokeRoleProtectedAsync<T>(Func<IFootballManagerService, T> operation, Func<string, T> denied)
     {
         return Task.Run(() =>
         {
-            var http = new MatchHttpStatus();
+            var http = new ServiceHttpStatus();
             try
             {
                 return Invoke(operation, http);
@@ -108,7 +132,7 @@ public sealed class WcfServiceClient
         });
     }
 
-    private static T Invoke<T>(Func<IFootballManagerService, T> operation, MatchHttpStatus? http = null)
+    private static T Invoke<T>(Func<IFootballManagerService, T> operation, ServiceHttpStatus? http = null)
     {
         var binding = new BasicHttpBinding(BasicHttpSecurityMode.None)
         {

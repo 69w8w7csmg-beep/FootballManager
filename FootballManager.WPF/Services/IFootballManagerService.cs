@@ -6,6 +6,24 @@ namespace FootballManager.WPF.Services;
 [ServiceContract(Name = "IFootballManagerService", Namespace = "urn:footballmanager:services")]
 public interface IFootballManagerService
 {
+    [OperationContract(Name = "GetTransfers")]
+    TransfersResponseDto GetTransfers(string sessionToken);
+
+    [OperationContract(Name = "SaveTransfer")]
+    OperationResultDto SaveTransfer(string sessionToken, TransferDto transfer);
+
+    [OperationContract(Name = "DeleteTransfer")]
+    OperationResultDto DeleteTransfer(string sessionToken, int transferId);
+
+    [OperationContract(Name = "GetPlayerStatistics")]
+    PlayerStatisticsResponseDto GetPlayerStatistics(string sessionToken);
+
+    [OperationContract(Name = "SavePlayerStatistic")]
+    OperationResultDto SavePlayerStatistic(string sessionToken, PlayerStatisticDto statistic);
+
+    [OperationContract(Name = "DeletePlayerStatistic")]
+    OperationResultDto DeletePlayerStatistic(string sessionToken, int statisticId);
+
     [OperationContract(Name = "GetMatches")]
     MatchesResponseDto GetMatches(string sessionToken, string searchText, DateTime? matchDate);
 
