@@ -635,6 +635,7 @@
                     <Border Grid.Row="1" Background="#152438" Padding="14" CornerRadius="9" Margin="0,0,0,16">
                         <TextBlock x:Name="RoleHomeText" Foreground="#E5ECF4" FontSize="15" TextWrapping="Wrap" />
                     </Border>
+                    <!-- הכפתורים מוצגים לפי תפקיד לנוחות; שירות WCF מאמת הרשאה מחדש לכל בקשה. -->
                     <StackPanel Grid.Row="2" HorizontalAlignment="Right" Margin="0,0,0,12">
                         <StackPanel Orientation="Horizontal">
                             <Button x:Name="OpenMatchesButton" Content="משחקים ותוצאות" Style="{StaticResource PrimaryButtonStyle}"

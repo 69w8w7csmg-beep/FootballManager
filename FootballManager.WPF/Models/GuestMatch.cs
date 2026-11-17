@@ -1,9 +1,7 @@
 // משחקי הדגמה לאורח במסך C2. שמות הקבוצות זהים לשמות שבמסד ההגשה.
 namespace FootballManager.WPF.Models;
 
-/// <summary>
-/// תצוגת הדגמה ציבורית שהיתה קיימת כבר ב־C2.
-/// </summary>
+/// <summary>מודל תצוגה פשוט עבור משחקים שמוצגים לאורח, כולל שמות קבוצות, תאריך ותוצאה.</summary>
 public sealed class GuestMatch
 {
     public string League { get; init; } = "";

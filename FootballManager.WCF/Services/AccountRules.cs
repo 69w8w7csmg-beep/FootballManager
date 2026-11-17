@@ -1,7 +1,11 @@
 namespace FootballManager.WCF.Services;
 
+/// <summary>כללי שרת לבדיקת שם משתמש וסיסמה בהרשמה; השרת מפעיל אותם גם אם לקוח שולח בקשה ישירות.</summary>
 public static class AccountRules
 {
+    /// <summary>בודקת שם משתמש: לא ריק, 3–30 תווים, אותיות לטיניות, ספרות או קו תחתון. מחזירה הודעת הסבר אם לא תקין, אחרת null. משמשת את שירות WCF לפני יצירת חשבון.</summary>
+    /// <param name="username">שם המשתמש שנקלט או נשמר.</param>
+    /// <returns>הודעת שגיאה אם הבדיקה נכשלה, או null אם הנתונים תקינים.</returns>
     public static string? ValidateUsername(string? username)
     {
         if (string.IsNullOrWhiteSpace(username))
@@ -22,6 +26,9 @@ public static class AccountRules
         return null;
     }
 
+    /// <summary>בודקת שסיסמה קיימת ואורכה 8–128 תווים. מחזירה הודעת הסבר או null, והשירות עוצר הרשמה כשהבדיקה נכשלת.</summary>
+    /// <param name="password">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
+    /// <returns>הודעת שגיאה אם הבדיקה נכשלה, או null אם הנתונים תקינים.</returns>
     public static string? ValidatePassword(string? password)
     {
         if (string.IsNullOrEmpty(password))

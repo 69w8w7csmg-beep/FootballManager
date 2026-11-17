@@ -3,10 +3,13 @@ using FootballManager.WCF.Services;
 
 namespace FootballManager.WCF.Web;
 
+/// <summary>נקודות REST של האתר הקיים מ־C2. הן משתמשות באותו שירות משתמשים, ובסבב C4 לא מוסיפים להן מסכי תוכן.</summary>
 public static class FootballManagerWebApi
 {
     private const string SessionCookie = "fm_session";
 
+    /// <summary>מבצעת את שלב המערכת Map Football Manager Web Api באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך אתחול.</summary>
+    /// <param name="app">ערך מסוג WebApplication שהפעולה צריכה כדי לבצע את תפקידה.</param>
     public static void MapFootballManagerWebApi(this WebApplication app)
     {
         app.MapGet("/api/status", (IServiceProvider services) =>
@@ -106,14 +109,24 @@ public static class FootballManagerWebApi
             Results.Ok(WithService(services, service => service.RemovePlayerFromTeam(Token(context), teamId, playerId))));
     }
 
+    /// <summary>מבצעת את שלב המערכת With Service באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Map Football Manager Web Api.</summary>
+    /// <param name="services">ערך מסוג IServiceProvider שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="action">ערך מסוג Func&lt;FootballManagerService, T&gt; שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>ערך מסוג T שמשמש את הקוד הקורא.</returns>
     private static T WithService<T>(IServiceProvider services, Func<FootballManagerService, T> action)
     {
         using var scope = services.CreateScope();
         return action(scope.ServiceProvider.GetRequiredService<FootballManagerService>());
     }
 
+    /// <summary>מבצעת את שלב המערכת Token באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Map Football Manager Web Api.</summary>
+    /// <param name="context">ערך מסוג HttpContext שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>מחרוזת שמייצגת את תוצאת הפעולה.</returns>
     private static string Token(HttpContext context) => context.Request.Cookies[SessionCookie] ?? string.Empty;
 
+    /// <summary>מבצעת את שלב המערכת Public Session באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Map Football Manager Web Api.</summary>
+    /// <param name="result">אובייקט נתונים שמעביר מידע בין שכבות.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     private static LoginResponseDto PublicSession(LoginResponseDto result) => new()
     {
         Succeeded = result.Succeeded,
@@ -122,6 +135,8 @@ public static class FootballManagerWebApi
         Role = result.Role
     };
 
+    /// <summary>המחלקה RoleChangeRequest מרכזת אחריות של נקודות REST של האתר הקיים מ-C2. רכיבים אחרים משתמשים בה כדי לבצע את פעולותיה ולחבר בין שכבות הפרויקט.</summary>
     public sealed record RoleChangeRequest(string Role);
+    /// <summary>המחלקה BlockUserRequest מרכזת אחריות של נקודות REST של האתר הקיים מ-C2. רכיבים אחרים משתמשים בה כדי לבצע את פעולותיה ולחבר בין שכבות הפרויקט.</summary>
     public sealed record BlockUserRequest(bool IsBlocked);
 }

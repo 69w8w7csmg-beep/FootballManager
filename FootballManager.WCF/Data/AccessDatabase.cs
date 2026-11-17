@@ -5,11 +5,15 @@ using System.Runtime.InteropServices;
 
 namespace FootballManager.WCF.Data;
 
+/// <summary>רכיב תשתית שרת WCF שמחשב את נתיב קובץ Access, יוצר/מוודא את הטבלאות והאינדקסים, ופותח חיבורי OleDb. רק שכבת השרת משתמשת בו.</summary>
 public sealed class AccessDatabase
 {
     private readonly string _databasePath;
     private readonly string _connectionString;
 
+    /// <summary>מבצעת את שלב המערכת Access Database באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="configuration">ערך מסוג IConfiguration שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="environment">ערך מסוג IHostEnvironment שהפעולה צריכה כדי לבצע את תפקידה.</param>
     public AccessDatabase(IConfiguration configuration, IHostEnvironment environment)
     {
         var relativePath = configuration["AccessDatabase:Path"] ?? "Data/FootballManager.accdb";
@@ -22,6 +26,7 @@ public sealed class AccessDatabase
 
     public string DatabasePath => _databasePath;
 
+    /// <summary>נקראת בעת אתחול WCF. היא מוודאת שקובץ Access קיים, פותחת חיבור ומוודאת את Users, Teams, Players, TeamPlayers, Matches, PlayerStatistics, Transfers ו־Favorites יחד עם המפתחות והאינדקסים. בסיום IsReady מציין שהמסד מוכן; שגיאת ספק או מערכת הפעלה נזרקת ומדווחת באתחול השירות.</summary>
     public void Initialize()
     {
         if (!OperatingSystem.IsWindows())
@@ -39,6 +44,7 @@ public sealed class AccessDatabase
         using var connection = new OleDbConnection(_connectionString);
         connection.Open();
 
+        // המשתמשים נשמרים עם PasswordHash ותפקיד; אורח אינו מקבל שורת Users.
         EnsureTable(connection, "Users",
             "CREATE TABLE [Users] (" +
             "[UserId] COUNTER CONSTRAINT [PK_Users] PRIMARY KEY, " +
@@ -75,6 +81,7 @@ public sealed class AccessDatabase
             "[Shooting] BETWEEN 0 AND 100 AND [Passing] BETWEEN 0 AND 100 AND " +
             "[Defense] BETWEEN 0 AND 100))");
 
+        // טבלת קישור זו מממשת קשר רבים-לרבים בין שחקנים לקבוצות.
         EnsureTable(connection, "TeamPlayers",
             "CREATE TABLE [TeamPlayers] (" +
             "[TeamId] LONG NOT NULL, " +
@@ -96,6 +103,7 @@ public sealed class AccessDatabase
             "CONSTRAINT [FK_Matches_HomeTeam] FOREIGN KEY ([HomeTeamId]) REFERENCES [Teams] ([TeamId]), " +
             "CONSTRAINT [FK_Matches_AwayTeam] FOREIGN KEY ([AwayTeamId]) REFERENCES [Teams] ([TeamId]))");
 
+        // נתוני C4 תלויים בשחקן ובמשחק באמצעות Foreign Keys קיימים.
         EnsureTable(connection, "PlayerStatistics",
             "CREATE TABLE [PlayerStatistics] (" +
             "[StatisticId] COUNTER CONSTRAINT [PK_PlayerStatistics] PRIMARY KEY, " +
@@ -108,6 +116,7 @@ public sealed class AccessDatabase
             "CONSTRAINT [FK_PlayerStatistics_Players] FOREIGN KEY ([PlayerId]) REFERENCES [Players] ([PlayerId]), " +
             "CONSTRAINT [FK_PlayerStatistics_Matches] FOREIGN KEY ([MatchId]) REFERENCES [Matches] ([MatchId]))");
 
+        // כל העברה מחוברת לשחקן ולקבוצת המקור והיעד.
         EnsureTable(connection, "Transfers",
             "CREATE TABLE [Transfers] (" +
             "[TransferId] COUNTER CONSTRAINT [PK_Transfers] PRIMARY KEY, " +
@@ -131,6 +140,8 @@ public sealed class AccessDatabase
         IsReady = true;
     }
 
+    /// <summary>פותחת חיבור OleDb לקובץ Access שהוגדר בתצורת השרת ומחזירה אותו למאגר שקרא לה. הקוד הקורא אחראי לסגור אותו, בדרך כלל באמצעות using.</summary>
+    /// <returns>ערך מסוג OleDbConnection שמשמש את הקוד הקורא.</returns>
     public OleDbConnection OpenConnection()
     {
         var connection = new OleDbConnection(_connectionString);
@@ -138,6 +149,10 @@ public sealed class AccessDatabase
         return connection;
     }
 
+    /// <summary>מכינה או מאתחלת את רכיב המערכת המתואר בשם Ensure Table לפני השימוש בו. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Initialize.</summary>
+    /// <param name="connection">ערך מסוג OleDbConnection שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="tableName">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <param name="createSql">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
     private static void EnsureTable(OleDbConnection connection, string tableName, string createSql)
     {
         var schema = connection.GetSchema("Tables");
@@ -155,12 +170,18 @@ public sealed class AccessDatabase
         }
     }
 
+    /// <summary>מכינה או מאתחלת את רכיב המערכת המתואר בשם Ensure User Column Sizes לפני השימוש בו. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Initialize.</summary>
+    /// <param name="connection">ערך מסוג OleDbConnection שהפעולה צריכה כדי לבצע את תפקידה.</param>
     private static void EnsureUserColumnSizes(OleDbConnection connection)
     {
         EnsureTextColumnSize(connection, "Username", 30);
         EnsureTextColumnSize(connection, "Role", 10);
     }
 
+    /// <summary>מכינה או מאתחלת את רכיב המערכת המתואר בשם Ensure Text Column Size לפני השימוש בו. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Ensure User Column Sizes.</summary>
+    /// <param name="connection">ערך מסוג OleDbConnection שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="columnName">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <param name="maximumLength">ערך מסוג int שהפעולה צריכה כדי לבצע את תפקידה.</param>
     private static void EnsureTextColumnSize(OleDbConnection connection, string columnName, int maximumLength)
     {
         var columns = connection.GetSchema("Columns");
@@ -185,6 +206,8 @@ public sealed class AccessDatabase
         }
     }
 
+    /// <summary>מכינה או מאתחלת את רכיב המערכת המתואר בשם Ensure Username Index לפני השימוש בו. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Initialize.</summary>
+    /// <param name="connection">ערך מסוג OleDbConnection שהפעולה צריכה כדי לבצע את תפקידה.</param>
     private static void EnsureUsernameIndex(OleDbConnection connection)
     {
         var indexes = connection.GetSchema("Indexes");
@@ -203,6 +226,8 @@ public sealed class AccessDatabase
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Create Access File. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Initialize.</summary>
+    /// <param name="path">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
     private static void CreateAccessFile(string path)
     {
         var catalogType = Type.GetTypeFromProgID("ADOX.Catalog");

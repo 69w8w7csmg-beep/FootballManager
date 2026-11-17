@@ -2,6 +2,7 @@ using System.Runtime.Serialization;
 
 namespace FootballManager.Contracts;
 
+/// <summary>תוצאת בדיקת זמינות שמחזיר השירות כדי שהלקוח יידע אם WCF ומסד Access מוכנים.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class ServiceStatusDto
 {
@@ -15,6 +16,7 @@ public sealed class ServiceStatusDto
     public string Message { get; set; } = string.Empty;
 }
 
+/// <summary>בקשת הרשמה שמעבירה שם משתמש וסיסמה מהלקוח אל השירות. השרת מאמת ומגבה את הסיסמה לפני שמירת חשבון Player.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class RegisterRequestDto
 {
@@ -28,6 +30,7 @@ public sealed class RegisterRequestDto
     public string Role { get; set; } = "Player";
 }
 
+/// <summary>בקשת אדמין ליצור משתמש מנוהל עם שם משתמש, תפקיד וסיסמה; השרת בודק הרשאה ומגבה את הסיסמה.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class CreateManagedUserRequestDto
 {
@@ -41,6 +44,7 @@ public sealed class CreateManagedUserRequestDto
     public string Role { get; set; } = "Player";
 }
 
+/// <summary>תשובה כללית לפעולות שירות כגון יצירה, עדכון ומחיקה: דגל הצלחה והודעה למסך.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class OperationResultDto
 {
@@ -51,6 +55,7 @@ public sealed class OperationResultDto
     public string Message { get; set; } = string.Empty;
 }
 
+/// <summary>בקשת כניסה המעבירה שם משתמש וסיסמה ל־WCF לצורך אימות מול גיבוב הסיסמה שבמסד.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class LoginRequestDto
 {
@@ -61,6 +66,7 @@ public sealed class LoginRequestDto
     public string Password { get; set; } = string.Empty;
 }
 
+/// <summary>תשובת כניסה הכוללת הצלחה או כשל, הודעה, ובכניסה תקינה גם אסימון Session, שם משתמש ו־Role שנקראו מהשרת.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class LoginResponseDto
 {
@@ -80,6 +86,7 @@ public sealed class LoginResponseDto
     public string Role { get; set; } = string.Empty;
 }
 
+/// <summary>נתונים שאדמין רשאי לראות על חשבון משתמש, כגון מזהה, שם, תפקיד ומצב חסימה; אינו כולל סיסמה.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class ManagedUserDto
 {
@@ -95,12 +102,15 @@ public sealed class ManagedUserDto
     [DataMember(Order = 4)]
     public bool IsBlocked { get; set; }
 
+    /// <summary>ממירה את נתוני האובייקט למחרוזת תצוגה עבור המסך או הרשימה. נקראת בקוד מתוך Read Player, Read Team.</summary>
+    /// <returns>מחרוזת שמייצגת את תוצאת הפעולה.</returns>
     public override string ToString()
     {
         return $"{Username} | {Role} | {(IsBlocked ? "חסום" : "פעיל")}";
     }
 }
 
+/// <summary>מעטפת תשובת השירות לניהול משתמשים, הכוללת הודעת מצב ורשימת ManagedUserDto.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class ManagedUsersResponseDto
 {

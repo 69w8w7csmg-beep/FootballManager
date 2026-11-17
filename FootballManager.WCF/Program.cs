@@ -1,3 +1,7 @@
+// תפקיד הקובץ: להפעיל את שירות WCF ואת נקודות ה־REST הקיימות של האתר.
+// שכבה: נקודת הכניסה של שרת ASP.NET Core ו־CoreWCF.
+// משתמשים: סביבת ההפעלה טוענת את הגדרות החיבור, המסד והשירותים מכאן.
+// קשר בפרויקט: AccessDatabase ומאגרי הנתונים נרשמים ב־DI ואז מוזרקים ל־FootballManagerService.
 using CoreWCF;
 using CoreWCF.Configuration;
 using CoreWCF.Channels;
@@ -10,12 +14,14 @@ using FootballManager.WCF.Web;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+// השירות מקומי לצורכי הפרויקט ומאזין לכתובת שהלקוח WPF משתמש בה.
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenLocalhost(5152);
 });
 
 var database = new AccessDatabase(builder.Configuration, builder.Environment);
+// לפני הפעלת השירות מוודאים שמסד Access והטבלאות קיימים.
 database.Initialize();
 
 if (args.Contains("--create-admin", StringComparer.OrdinalIgnoreCase))
@@ -76,6 +82,8 @@ app.MapFootballManagerWebApi();
 
 app.Run();
 
+/// <summary>פקודת תחזוקה ליצירת Admin ראשוני כשמריצים את השרת עם --create-admin. היא מבקשת שם משתמש וסיסמה, בודקת אותם, מגבבת את הסיסמה ושומרת דרך AccessUserRepository. אם כבר קיים Admin או שהקלט לא תקין, הפעולה נעצרת עם הודעה.</summary>
+/// <param name="database">רכיב AccessDatabase שהשרת אתחל עבור פעולת התחזוקה.</param>
 static void CreateInitialAdmin(AccessDatabase database)
 {
     var repository = new AccessUserRepository(database);
@@ -128,6 +136,8 @@ static void CreateInitialAdmin(AccessDatabase database)
     }
 }
 
+/// <summary>פקודת הדגמה ליצירת משתמש Player ו־Manager עם סיסמאות אקראיות, כשמריצים --seed-demo-users. מוודאת שקיים Admin, מגבבת ושומרת את הסיסמאות ומציגה אותן פעם אחת למסך התחזוקה.</summary>
+/// <param name="database">רכיב AccessDatabase שהשרת אתחל עבור פעולת התחזוקה.</param>
 static void CreateDemoUsers(AccessDatabase database)
 {
     var repository = new AccessUserRepository(database);
@@ -159,6 +169,8 @@ static void CreateDemoUsers(AccessDatabase database)
     }
 }
 
+/// <summary>מאפסת חשבונות הדגמה בשלושת התפקידים כשמריצים --prepare-demo-accounts. היא משאירה Admin קיים, יוצרת סיסמאות חדשות, שומרת רק PasswordHash ומציגה את הסיסמאות פעם אחת כדי לשמור אותן מחוץ למסד.</summary>
+/// <param name="database">רכיב AccessDatabase שהשרת אתחל עבור פעולת התחזוקה.</param>
 static void PrepareDemoAccounts(AccessDatabase database)
 {
     var repository = new AccessUserRepository(database);
@@ -192,6 +204,9 @@ static void PrepareDemoAccounts(AccessDatabase database)
     }
 }
 
+/// <summary>קוראת סיסמה מהקונסול בלי להציג את התווים עצמם. Backspace מוחק תו אחרון, Enter מסיים, ומוחזרת הסיסמה בזיכרון לפעולת התחזוקה הקוראת.</summary>
+/// <param name="prompt">הטקסט שמסביר למפעיל איזה נתון להקליד.</param>
+/// <returns>הסיסמה שהוקלדה; היא מיועדת לגיבוב מיד לאחר הקריאה.</returns>
 static string ReadPassword(string prompt)
 {
     Console.Write(prompt);

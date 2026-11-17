@@ -5,7 +5,7 @@ using System.Windows;
 namespace FootballManager.WPF
 {
     /// <summary>
-    /// Interaction logic for App.xaml
+    /// נקודת הכניסה של יישום WPF והמחלקה שמאחורי App.xaml.
     /// </summary>
     public partial class App : Application
     {

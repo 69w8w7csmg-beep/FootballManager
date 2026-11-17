@@ -1,13 +1,20 @@
-// קריאה, שמירה ומחיקה של העברות בטבלת Transfers הקיימת במסד Access.
+// תפקיד הקובץ: קריאה, שמירה ומחיקה של העברות בטבלת Transfers.
+// שכבה: שכבת גישה לנתונים בצד שרת WCF.
+// משתמשים: FootballManagerService מעביר לכאן בקשות לאחר בדיקת הרשאה.
+// קשר בפרויקט: המחלקה משתמשת ב־AccessDatabase וב־OleDb; המסך אינו ניגש אליה.
 using System.Data.OleDb;
 using FootballManager.Contracts;
 
 namespace FootballManager.WCF.Data;
 
+/// <summary>מאגר העברות C4 בטבלת Transfers. הוא ממיר בין שורות Access ל־TransferDto ומבצע INSERT, UPDATE ו־DELETE לפי מזהה.</summary>
 public sealed class AccessTransferRepository(AccessDatabase database)
 {
+    /// <summary>פותחת חיבור למסד וקוראת את העברות השחקנים עם שמות השחקן והקבוצות לצורך תצוגה. כל רשומה הופכת ל־TransferDto. נקראת מתוך פעולת השליפה של שירות C4.</summary>
+    /// <returns>רשימת הרשומות שנשלפו.</returns>
     public List<TransferDto> GetTransfers()
     {
+        // החיבור נוצר דרך רכיב המסד המרכזי ומשתחרר בסיום באמצעות using.
         using var connection = database.OpenConnection();
         using var command = connection.CreateCommand();
         command.CommandText =
@@ -39,10 +46,14 @@ public sealed class AccessTransferRepository(AccessDatabase database)
         return transfers;
     }
 
+    /// <summary>מוסיף העברה כשהמזהה 0 או מעדכן רשומה קיימת כשהמזהה אינו 0. פרמטרי OleDb מונעים חיבור ערכי טופס ישירות לתוך SQL. מחזיר true אם שורה אחת הושפעה.</summary>
+    /// <param name="transfer">נתוני העברת השחקן שעליהם פועלת הפעולה.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool Save(TransferDto transfer)
     {
         using var connection = database.OpenConnection();
         using var command = connection.CreateCommand();
+        // בחירת פקודת INSERT או UPDATE קובעת אם זו רשומה חדשה או עריכה.
         command.CommandText = transfer.TransferId == 0
             ? "INSERT INTO [Transfers] ([PlayerId], [FromTeamId], [ToTeamId], [TransferDate], [Price]) " +
               "VALUES (?, ?, ?, ?, ?)"
@@ -58,9 +69,13 @@ public sealed class AccessTransferRepository(AccessDatabase database)
             command.Parameters.Add("@TransferId", OleDbType.Integer).Value = transfer.TransferId;
         }
 
+        // Access מאשר הצלחה אם פקודת השינוי השפיעה על שורה אחת.
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מוחקת שורה מטבלת Transfers לפי המזהה ומחזירה true אם נמצאה ונמחקה שורה אחת. קשרי המפתח הזר מתחייבים במסד Access.</summary>
+    /// <param name="transferId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool Delete(int transferId)
     {
         using var connection = database.OpenConnection();

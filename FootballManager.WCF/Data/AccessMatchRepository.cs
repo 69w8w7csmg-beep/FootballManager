@@ -4,8 +4,13 @@ using FootballManager.Contracts;
 
 namespace FootballManager.WCF.Data;
 
+/// <summary>מאגר משחקי C3 בטבלת Matches; שירות WCF משתמש בו לשליפה, שמירה ומחיקה תוך שמירת קשרי הקבוצות.</summary>
 public sealed class AccessMatchRepository(AccessDatabase database)
 {
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Matches ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Get Matches, Get Matches Async.</summary>
+    /// <param name="searchText">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <param name="matchDate">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
+    /// <returns>רשימת הרשומות שנשלפו.</returns>
     public List<MatchDto> GetMatches(string? searchText, DateTime? matchDate)
     {
         using var connection = database.OpenConnection();
@@ -46,6 +51,9 @@ public sealed class AccessMatchRepository(AccessDatabase database)
         return matches;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Save. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Save Transfer, Save Player Statistic.</summary>
+    /// <param name="match">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool Save(MatchDto match)
     {
         using var connection = database.OpenConnection();
@@ -65,6 +73,9 @@ public sealed class AccessMatchRepository(AccessDatabase database)
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Delete. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Delete Transfer, Delete Player Statistic.</summary>
+    /// <param name="matchId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool Delete(int matchId)
     {
         using var connection = database.OpenConnection();

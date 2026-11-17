@@ -1,4 +1,7 @@
-// ניהול העברות וסטטיסטיקות בלקוח WPF דרך חוזה WCF, ללא גישה ישירה למסד.
+// תפקיד הקובץ: ניהול מצב ופעולות מסך ההעברות והסטטיסטיקות של C4.
+// שכבה: ViewModel בצד WPF.
+// משתמשים: Cycle4Window מציג את הנתונים ומפעיל את הפקודות שבו.
+// קשר בפרויקט: ה־ViewModel פונה ל־WcfServiceClient, ולא פותח חיבור למסד.
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -8,6 +11,7 @@ using FootballManager.WPF.Services;
 
 namespace FootballManager.WPF.ViewModels;
 
+/// <summary>ViewModel של חלון C4. הוא מחזיק נתוני טפסים ורשימות, בונה DTOs, מפעיל פקודות ומעביר בקשות ל־WCF עם אסימון המשתמש.</summary>
 public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
 {
     private readonly WcfServiceClient _service;
@@ -75,6 +79,11 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
     public ICommand SaveStatistic { get; }
     public ICommand DeleteStatistic { get; }
 
+    /// <summary>מבצעת את שלב המערכת Cycle4Content View Model באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="service">ערך מסוג WcfServiceClient שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="session">ערך מסוג AccountSessionViewModel שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="confirmDelete">דגל המציין אם המצב או הפעולה מופעלים.</param>
+    /// <param name="rememberTransfer">נתוני העברת השחקן שעליהם פועלת הפעולה.</param>
     public Cycle4ContentViewModel(
         WcfServiceClient service, AccountSessionViewModel session,
         Func<string, bool> confirmDelete, Action<TransferDto> rememberTransfer)
@@ -106,6 +115,8 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         DeleteStatistic = Action(DeleteStatisticAsync, () => SelectedStatistic is not null);
     }
 
+    /// <summary>נקראת כשהחלון נפתח. טוענת שחקנים, קבוצות ומשחקים כדי למלא בחירות, ואז טוענת העברות וסטטיסטיקות דרך WCF. אם טעינת נתוני הבסיס נכשלת, הודעת השירות מוצגת והטעינה נעצרת.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task InitializeAsync() => RunAsync(async () =>
     {
         var players = await _service.GetPlayersAsync();
@@ -126,9 +137,16 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         await LoadStatisticsAsync(null);
     });
 
+    /// <summary>מריצה את הפעולה Action לפי זרימת העבודה של הרכיב. נקראת בקוד מתוך Cycle4Content View Model, Matches View Model.</summary>
+    /// <param name="operation">ערך מסוג Func&lt;Task&gt; שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="allowed">דגל המציין אם המצב או הפעולה מופעלים.</param>
+    /// <returns>ערך מסוג ICommand שמשמש את הקוד הקורא.</returns>
     private ICommand Action(Func<Task> operation, Func<bool>? allowed = null) =>
         new Cycle4Command(() => RunAsync(operation), () => Ready && (allowed?.Invoke() ?? true));
 
+    /// <summary>עוטפת פקודות אסינכרוניות כדי למנוע שתי פעולות במקביל, מעדכנת את Ready ומריצה את הבקשה. חריגות הופכות להודעת מצב למשתמש, ולבסוף מצב העבודה מתנקה גם במקרה של שגיאה.</summary>
+    /// <param name="operation">ערך מסוג Func&lt;Task&gt; שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task RunAsync(Func<Task> operation)
     {
         if (_busy) return;
@@ -145,6 +163,9 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>מבקשת את רשימת ההעברות משירות WCF עם אסימון המשתמש, מעדכנת את הרשימה ואת הפריט הנבחר ומציגה הודעת הצלחה או כשל. selectedId משמש לשמירת הבחירה לאחר רענון.</summary>
+    /// <param name="selectedId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task LoadTransfersAsync(int? selectedId)
     {
         var result = await _service.GetTransfersAsync(_token);
@@ -154,6 +175,9 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         Status = result.Succeeded ? $"נטענו {Transfers.Count} העברות." : result.Message;
     }
 
+    /// <summary>מבקשת את סטטיסטיקות המשחק משירות WCF, מעדכנת את הרשימה ואת הבחירה, ומציגה הודעת שירות במקרה של הצלחה או כשל. selectedId משמר בחירה לאחר טעינה חוזרת.</summary>
+    /// <param name="selectedId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task LoadStatisticsAsync(int? selectedId)
     {
         var result = await _service.GetPlayerStatisticsAsync(_token);
@@ -163,6 +187,7 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         Status = result.Succeeded ? $"נטענו {Statistics.Count} רשומות סטטיסטיקה." : result.Message;
     }
 
+    /// <summary>מבצעת את שלב המערכת Populate Transfer Editor באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך אתחול, Cycle4Content View Model.</summary>
     private void PopulateTransferEditor()
     {
         TransferPlayerId = SelectedTransfer?.PlayerId ?? Players.FirstOrDefault()?.PlayerId ?? 0;
@@ -174,6 +199,7 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         CommandManager.InvalidateRequerySuggested();
     }
 
+    /// <summary>מבצעת את שלב המערכת Populate Statistic Editor באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך אתחול, Cycle4Content View Model.</summary>
     private void PopulateStatisticEditor()
     {
         StatisticPlayerId = SelectedStatistic?.PlayerId ?? Players.FirstOrDefault()?.PlayerId ?? 0;
@@ -186,8 +212,11 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         CommandManager.InvalidateRequerySuggested();
     }
 
+    /// <summary>מופעלת בפקודת שמירה. בודקת בשכבת הממשק מזהים, מחיר ותאריך, בונה TransferDto ושולחת אותו ל־WCF עם אסימון ההפעלה. השרת מבצע בדיקת הרשאה וקלט נוספת. אחרי הצלחה הרשימה נטענת מחדש כדי להציג את הנתון שנשמר.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task SaveTransferAsync()
     {
+        // בדיקה מוקדמת נותנת למשתמש הודעה ברורה; היא אינה מחליפה את בדיקת השרת.
         if (TransferPlayerId <= 0 || FromTeamId <= 0 || ToTeamId <= 0 || FromTeamId == ToTeamId)
         {
             Status = "יש לבחור שחקן ושתי קבוצות שונות.";
@@ -209,6 +238,7 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
             TransferDate = TransferDate.Value.Date,
             Price = price
         };
+        // המסך שולח את ה־DTO והאסימון לשירות. רק השרת ניגש למסד Access.
         var result = await _service.SaveTransferAsync(_token, transfer);
         Status = result.Message;
         if (result.Succeeded)
@@ -219,6 +249,8 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>מופעלת מפקודת המחיקה. דורשת בחירה ואישור משתמש, שולחת את המזהה והאסימון ל־WCF, ומרעננת את הרשימה רק לאחר הצלחה. שגיאת השירות מוצגת ב־Status.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task DeleteTransferAsync()
     {
         if (SelectedTransfer is not { } transfer ||
@@ -234,6 +266,8 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>מופעלת מפקודת שמירת סטטיסטיקה. בודקת מזהי שחקן ומשחק, ממירה שערים, בישולים, דקות ודירוג מטקסט, בונה PlayerStatisticDto ושולחת ל־WCF. השרת בודק שוב הרשאה ותקינות; הצלחה גורמת לטעינה מחדש.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task SaveStatisticAsync()
     {
         if (StatisticPlayerId <= 0 || StatisticMatchId <= 0 ||
@@ -257,6 +291,7 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
             MinutesPlayed = minutes,
             Rating = rating
         };
+        // נתוני הטופס עוברים כחוזה משותף; ה־ViewModel אינו מבצע SQL.
         var result = await _service.SavePlayerStatisticAsync(_token, statistic);
         Status = result.Message;
         if (result.Succeeded)
@@ -266,6 +301,8 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>מופעלת מפקודת מחיקת סטטיסטיקה. מבקשת אישור, שולחת מזהה ואסימון ל־WCF, ומרעננת לאחר הצלחה; במקרה כשל היא משאירה את ההודעה שהחזיר השירות.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task DeleteStatisticAsync()
     {
         if (SelectedStatistic is not { } statistic ||
@@ -281,6 +318,11 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Set. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך אתחול.</summary>
+    /// <param name="field">ערך מסוג T שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="value">ערך מסוג T שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="name">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     private bool Set<T>(ref T field, T value, [CallerMemberName] string name = "")
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;
@@ -288,8 +330,11 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
         Changed(name);
         return true;
     }
+    /// <summary>מבצעת את שלב המערכת Changed באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Run Async, Populate Transfer Editor.</summary>
+    /// <param name="name">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
     private void Changed(string name) => PropertyChanged?.Invoke(this, new(name));
 
+    /// <summary>מימוש ICommand שמחבר פקודות Binding ב־WPF לפעולות האסינכרוניות של Cycle4ContentViewModel ומאפשר לבדוק אם ניתן להריץ אותן.</summary>
     private sealed class Cycle4Command(Func<Task> execute, Func<bool> canExecute) : ICommand
     {
         public event EventHandler? CanExecuteChanged
@@ -297,9 +342,15 @@ public sealed class Cycle4ContentViewModel : INotifyPropertyChanged
             add => CommandManager.RequerySuggested += value;
             remove => CommandManager.RequerySuggested -= value;
         }
+        /// <summary>בודקת את התנאי Can Execute ומחזירה תשובת כן או לא לשימוש בקוד הקורא או בממשק. נקראת בקוד מתוך Execute.</summary>
+        /// <param name="parameter">ערך מסוג object? שהפעולה צריכה כדי לבצע את תפקידה.</param>
+        /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
         public bool CanExecute(object? parameter) => canExecute();
+        /// <summary>מריצה את הפעולה Execute לפי זרימת העבודה של הרכיב.</summary>
+        /// <param name="parameter">ערך מסוג object? שהפעולה צריכה כדי לבצע את תפקידה.</param>
         public async void Execute(object? parameter) { if (CanExecute(parameter)) await execute(); }
     }
 }
 
+/// <summary>המחלקה MatchOption מרכזת אחריות של ViewModel של WPF. רכיבים אחרים משתמשים בה כדי לבצע את פעולותיה ולחבר בין שכבות הפרויקט.</summary>
 public sealed record MatchOption(int MatchId, string Label);

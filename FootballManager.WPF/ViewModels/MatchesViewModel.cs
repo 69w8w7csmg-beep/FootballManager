@@ -7,6 +7,7 @@ using FootballManager.WPF.Services;
 
 namespace FootballManager.WPF.ViewModels;
 
+/// <summary>ViewModel של מסך משחקי C3. הוא מנהל חיפוש, בחירה ופקודות CRUD ומעביר את פעולות המשחקים ל־WCF.</summary>
 public sealed class MatchesViewModel : INotifyPropertyChanged
 {
     private readonly WcfServiceClient _service;
@@ -51,6 +52,10 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
     public ICommand Delete { get; }
     public ICommand TrySaveResult { get; }
 
+    /// <summary>מבצעת את שלב המערכת Matches View Model באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="service">ערך מסוג WcfServiceClient שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="session">ערך מסוג AccountSessionViewModel שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="confirmDelete">דגל המציין אם המצב או הפעולה מופעלים.</param>
     public MatchesViewModel(WcfServiceClient service, AccountSessionViewModel session, Func<string, bool> confirmDelete)
     {
         _service = service;
@@ -80,6 +85,8 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
         TrySaveResult = Action(TrySaveResultAsync, () => IsPlayer && SelectedMatch != null);
     }
 
+    /// <summary>מכינה או מאתחלת את רכיב המערכת המתואר בשם Initialize Async לפני השימוש בו. בגוף הפעולה: פונה לשירות דרך שכבת WCF. נקראת בקוד מתוך Cycle4Window, Matches Window.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task InitializeAsync() => RunAsync(async () =>
     {
         if (IsManager)
@@ -91,9 +98,16 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
         await LoadMatchesAsync(null);
     });
 
+    /// <summary>מריצה את הפעולה Action לפי זרימת העבודה של הרכיב. נקראת בקוד מתוך Cycle4Content View Model, Matches View Model.</summary>
+    /// <param name="operation">ערך מסוג Func&lt;Task&gt; שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="allowed">דגל המציין אם המצב או הפעולה מופעלים.</param>
+    /// <returns>ערך מסוג ICommand שמשמש את הקוד הקורא.</returns>
     private ICommand Action(Func<Task> operation, Func<bool>? allowed = null) =>
         new MatchCommand(() => RunAsync(operation), () => Ready && (allowed?.Invoke() ?? true));
 
+    /// <summary>מריצה את הפעולה Run Async לפי זרימת העבודה של הרכיב. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Initialize Async, Action.</summary>
+    /// <param name="operation">ערך מסוג Func&lt;Task&gt; שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task RunAsync(Func<Task> operation)
     {
         if (_busy) return;
@@ -110,6 +124,9 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Load Matches Async ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: פונה לשירות דרך שכבת WCF. נקראת בקוד מתוך Matches View Model, Initialize Async.</summary>
+    /// <param name="selectId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task<bool> LoadMatchesAsync(int? selectId)
     {
         var result = await _service.GetMatchesAsync(_token, SearchText.Trim(), FilterDate?.Date);
@@ -120,6 +137,7 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
         return result.Succeeded;
     }
 
+    /// <summary>מבצעת את שלב המערכת Populate Editor באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך אתחול, Matches View Model.</summary>
     private void PopulateEditor()
     {
         HomeTeamId = SelectedMatch?.HomeTeamId ?? Teams.FirstOrDefault()?.TeamId ?? 0;
@@ -131,6 +149,8 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
         CommandManager.InvalidateRequerySuggested();
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Save Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: פונה לשירות דרך שכבת WCF.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task SaveAsync()
     {
         if (HomeTeamId <= 0 || AwayTeamId <= 0 || HomeTeamId == AwayTeamId)
@@ -156,6 +176,8 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
             Status = result.Message;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Delete Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: פונה לשירות דרך שכבת WCF.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task DeleteAsync()
     {
         if (SelectedMatch is not { } game || !_confirmDelete($"{game.HomeTeamName} מול {game.AwayTeamName} ({game.MatchDate:dd/MM/yyyy})"))
@@ -166,6 +188,8 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
             Status = result.Message;
     }
 
+    /// <summary>מנסה לבצע את הפעולה Try Save Result Async ומחזירה תוצאה שמאפשרת לקוד הקורא לזהות הצלחה או כישלון. בגוף הפעולה: פונה לשירות דרך שכבת WCF.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task TrySaveResultAsync()
     {
         if (SelectedMatch is not { } game) return;
@@ -173,6 +197,11 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
         Status = result.Message;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Set. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך אתחול.</summary>
+    /// <param name="field">ערך מסוג T שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="value">ערך מסוג T שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="name">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     private bool Set<T>(ref T field, T value, [CallerMemberName] string name = "")
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;
@@ -180,8 +209,11 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
         Changed(name);
         return true;
     }
+    /// <summary>מבצעת את שלב המערכת Changed באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Run Async, Populate Transfer Editor.</summary>
+    /// <param name="name">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
     private void Changed(string name) => PropertyChanged?.Invoke(this, new(name));
 
+    /// <summary>מימוש ICommand שמחבר פקודות מסך המשחקים לפעולות MatchesViewModel ובודק אם הפעולה זמינה.</summary>
     private sealed class MatchCommand(Func<Task> execute, Func<bool> canExecute) : ICommand
     {
         public event EventHandler? CanExecuteChanged
@@ -189,7 +221,12 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
             add => CommandManager.RequerySuggested += value;
             remove => CommandManager.RequerySuggested -= value;
         }
+        /// <summary>בודקת את התנאי Can Execute ומחזירה תשובת כן או לא לשימוש בקוד הקורא או בממשק. נקראת בקוד מתוך Execute.</summary>
+        /// <param name="parameter">ערך מסוג object? שהפעולה צריכה כדי לבצע את תפקידה.</param>
+        /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
         public bool CanExecute(object? parameter) => canExecute();
+        /// <summary>מריצה את הפעולה Execute לפי זרימת העבודה של הרכיב.</summary>
+        /// <param name="parameter">ערך מסוג object? שהפעולה צריכה כדי לבצע את תפקידה.</param>
         public async void Execute(object? parameter) { if (CanExecute(parameter)) await execute(); }
     }
 }

@@ -2,6 +2,7 @@ using System.Runtime.Serialization;
 
 namespace FootballManager.Contracts;
 
+/// <summary>DTO של פרטי שחקן ודירוגי היכולת. משותף למסכים, לשירות WCF ולמאגר Access.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class PlayerDto
 {
@@ -16,10 +17,13 @@ public sealed class PlayerDto
     [DataMember(Order = 9)] public int Passing { get; set; }
     [DataMember(Order = 10)] public int Defense { get; set; }
 
+    /// <summary>ממירה את נתוני האובייקט למחרוזת תצוגה עבור המסך או הרשימה. נקראת בקוד מתוך Read Player, Read Team.</summary>
+    /// <returns>מחרוזת שמייצגת את תוצאת הפעולה.</returns>
     public override string ToString() =>
         $"{FirstName} {LastName} · {Position} · דירוג {Rating} · גיל {Age}";
 }
 
+/// <summary>DTO של פרטי קבוצה, כולל שם, מדינה, ליגה ותקציב; משמש להצגה ולפעולות הקבוצות.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class TeamDto
 {
@@ -29,9 +33,12 @@ public sealed class TeamDto
     [DataMember(Order = 4)] public string League { get; set; } = string.Empty;
     [DataMember(Order = 5)] public decimal Budget { get; set; }
 
+    /// <summary>ממירה את נתוני האובייקט למחרוזת תצוגה עבור המסך או הרשימה. נקראת בקוד מתוך Read Player, Read Team.</summary>
+    /// <returns>מחרוזת שמייצגת את תוצאת הפעולה.</returns>
     public override string ToString() => $"{Name} · {Country} · {League}";
 }
 
+/// <summary>מעטפת תשובת שירות הכוללת הודעת מצב ורשימת שחקנים מסוג PlayerDto.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class PlayersResponseDto
 {
@@ -40,6 +47,7 @@ public sealed class PlayersResponseDto
     [DataMember(Order = 3)] public List<PlayerDto> Players { get; set; } = [];
 }
 
+/// <summary>מעטפת תשובת שירות הכוללת הודעת מצב ורשימת קבוצות מסוג TeamDto.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class TeamsResponseDto
 {

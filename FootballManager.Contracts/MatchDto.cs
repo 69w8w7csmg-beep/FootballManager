@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 
 namespace FootballManager.Contracts;
 
+/// <summary>DTO של משחק בין קבוצות עם תאריך, תוצאה ושמות להצגה. נשלח בין WPF לשירות WCF ונשמר בטבלת Matches.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class MatchDto
 {
@@ -16,6 +17,7 @@ public sealed class MatchDto
     [DataMember(Order = 8)] public string AwayTeamName { get; set; } = string.Empty;
 }
 
+/// <summary>מעטפת תשובת שירות עבור רשימת משחקים, כולל הודעת מצב ורשומות MatchDto.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class MatchesResponseDto
 {

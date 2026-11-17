@@ -1,8 +1,12 @@
-// נתוני העברות וסטטיסטיקות המשחק המשותפים ללקוח WPF ולשירות WCF.
+// תפקיד הקובץ: הגדרת DTO להעברת נתוני העברה וסטטיסטיקות.
+// שכבה: חוזים משותפים לפרויקטי WPF ולשירות WCF.
+// משתמשים: לקוח WPF, שירות WCF ומימושי החוזה.
+// קשר בפרויקט: הטיפוסים כאן מתארים את המידע שעובר בין המסך, השירות והמסד.
 using System.Runtime.Serialization;
 
 namespace FootballManager.Contracts;
 
+/// <summary>DTO שמייצג העברה בין קבוצות: מזהי שחקן וקבוצות, תאריך ומחיר. WPF שולח אותו בחוזה WCF; המאגר שומר את שדות ההעברה, ושמות התצוגה מתמלאים בשליפה.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class TransferDto
 {
@@ -17,6 +21,7 @@ public sealed class TransferDto
     [DataMember(Order = 9)] public string ToTeamName { get; set; } = string.Empty;
 }
 
+/// <summary>מעטפת תשובה של שירות C4. היא מחזירה אם שליפת ההעברות הצליחה, הודעת מצב ורשימת TransferDto.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class TransfersResponseDto
 {
@@ -25,6 +30,7 @@ public sealed class TransfersResponseDto
     [DataMember(Order = 3)] public List<TransferDto> Transfers { get; set; } = [];
 }
 
+/// <summary>DTO של נתוני שחקן במשחק אחד: מזהי שחקן ומשחק, שערים, בישולים, דקות ודירוג. עובר בין WPF לשירות וממופה לטבלת PlayerStatistics.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class PlayerStatisticDto
 {
@@ -39,6 +45,7 @@ public sealed class PlayerStatisticDto
     [DataMember(Order = 9)] public string MatchLabel { get; set; } = string.Empty;
 }
 
+/// <summary>מעטפת תשובה של שירות C4 עבור שליפת סטטיסטיקות משחק, עם הודעת שירות ורשימת PlayerStatisticDto.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class PlayerStatisticsResponseDto
 {

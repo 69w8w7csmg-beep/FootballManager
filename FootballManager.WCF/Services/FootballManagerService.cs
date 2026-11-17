@@ -6,6 +6,7 @@ using FootballManager.WCF.Data;
 
 namespace FootballManager.WCF.Services;
 
+/// <summary>מימוש חוזה SOAP/WCF בצד השרת. הוא מקבל DTOs מהלקוח, מאמת חשבונות ו־Session, בודק הרשאות ושולח פעולות למאגרי Access; שכבת WPF אינה פונה למסד.</summary>
 [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall)]
 public sealed partial class FootballManagerService : IFootballManagerService
 {
@@ -18,6 +19,15 @@ public sealed partial class FootballManagerService : IFootballManagerService
     private readonly PasswordHasher<UserRecord> _passwordHasher;
     private readonly LoginSessionStore _sessions;
 
+    /// <summary>מבצעת את שלב המערכת Football Manager Service באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="database">ערך מסוג AccessDatabase שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="users">ערך מסוג AccessUserRepository שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="football">ערך מסוג AccessFootballRepository שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="matches">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
+    /// <param name="transfers">נתוני העברת השחקן שעליהם פועלת הפעולה.</param>
+    /// <param name="statistics">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
+    /// <param name="passwordHasher">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
+    /// <param name="sessions">ערך מסוג LoginSessionStore שהפעולה צריכה כדי לבצע את תפקידה.</param>
     public FootballManagerService(
         AccessDatabase database,
         AccessUserRepository users,
@@ -38,6 +48,8 @@ public sealed partial class FootballManagerService : IFootballManagerService
         _sessions = sessions;
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Service Status ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Map Football Manager Web Api, Get Service Status Async.</summary>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public ServiceStatusDto GetServiceStatus()
     {
         return new ServiceStatusDto
@@ -50,8 +62,12 @@ public sealed partial class FootballManagerService : IFootballManagerService
         };
     }
 
+    /// <summary>נקראת מחוזה WCF בעת הרשמה. היא מנקה ובודקת את שם המשתמש והסיסמה, יוצרת חשבון Player בלבד, מגבבת את הסיסמה ב־PasswordHasher ושומרת דרך AccessUserRepository. שם כפול ושגיאת מסד מוחזרים כתשובה בלי ליצור חשבון.</summary>
+    /// <param name="request">אובייקט נתונים שמעביר מידע בין שכבות.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto Register(RegisterRequestDto request)
     {
+        // השירות מאמת מחדש את הנתונים גם אם הלקוח כבר הציג בדיקת קלט.
         var username = request?.Username?.Trim() ?? string.Empty;
         var usernameError = AccountRules.ValidateUsername(username);
         if (usernameError is not null)
@@ -65,6 +81,7 @@ public sealed partial class FootballManagerService : IFootballManagerService
             return Failure(passwordError);
         }
 
+        // סיסמה נשמרת כגיבוב, ולא כטקסט המקורי שנשלח מהמסך.
         var account = new UserRecord { Username = username, Role = "Player" };
         var passwordHash = _passwordHasher.HashPassword(account, request!.Password);
         try
@@ -79,6 +96,9 @@ public sealed partial class FootballManagerService : IFootballManagerService
         }
     }
 
+    /// <summary>מחפשת חשבון לפי שם משתמש, מאמתת את הסיסמה מול PasswordHash ובודקת חסימה. בהצלחה יוצרת אסימון Session ומחזירה שם ותפקיד; פרטים שגויים או חשבון חסום אינם מקבלים אסימון.</summary>
+    /// <param name="request">אובייקט נתונים שמעביר מידע בין שכבות.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public LoginResponseDto Login(LoginRequestDto request)
     {
         var username = request?.Username?.Trim() ?? string.Empty;
@@ -89,6 +109,7 @@ public sealed partial class FootballManagerService : IFootballManagerService
             return invalid;
         }
 
+        // השוואת הסיסמה מתבצעת מול הגיבוב באמצעות PasswordHasher.
         var user = _users.FindByUsername(username);
         if (user is null ||
             _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request!.Password) ==
@@ -102,6 +123,7 @@ public sealed partial class FootballManagerService : IFootballManagerService
             return new LoginResponseDto { Succeeded = false, Message = "החשבון חסום. פנה למנהל המערכת." };
         }
 
+        // האסימון האקראי משמש בבקשות הבאות לזיהוי המשתמש בצד השרת.
         return new LoginResponseDto
         {
             Succeeded = true,
@@ -112,6 +134,9 @@ public sealed partial class FootballManagerService : IFootballManagerService
         };
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Current Session ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Map Football Manager Web Api.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public LoginResponseDto GetCurrentSession(string sessionToken)
     {
         return TryGetAuthenticatedUser(sessionToken, out var user)
@@ -125,12 +150,18 @@ public sealed partial class FootballManagerService : IFootballManagerService
             : new LoginResponseDto { Succeeded = false, Message = "פג תוקף החיבור. יש להתחבר מחדש." };
     }
 
+    /// <summary>מסיימת את ההפעלה המחוברת ומנקה את מצב המשתמש בצד הלקוח. נקראת בקוד מתוך Map Football Manager Web Api, Logout Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto Logout(string sessionToken)
     {
         _sessions.Remove(sessionToken);
         return Success("התנתקת.");
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Managed Users ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Map Football Manager Web Api, Get Managed Users Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public ManagedUsersResponseDto GetManagedUsers(string sessionToken)
     {
         if (!TryGetAdmin(sessionToken))
@@ -150,6 +181,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
         };
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Create Managed User. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת; מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Map Football Manager Web Api, Create Managed User Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="request">אובייקט נתונים שמעביר מידע בין שכבות.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto CreateManagedUser(string sessionToken, CreateManagedUserRequestDto request)
     {
         if (!TryGetAdmin(sessionToken))
@@ -190,6 +225,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Delete Managed User. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Map Football Manager Web Api, Delete Managed User Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto DeleteManagedUser(string sessionToken, int userId)
     {
         if (!TryGetAdmin(sessionToken))
@@ -213,6 +252,11 @@ public sealed partial class FootballManagerService : IFootballManagerService
             : Failure("לא הצלחתי למחוק את החשבון.");
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Update User Role. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Map Football Manager Web Api, Update User Role Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="role">סוג המשתמש או התפקיד המבוקש; השרת מאמת הרשאות לפי החשבון.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto UpdateUserRole(string sessionToken, int userId, string role)
     {
         if (!TryGetAdmin(sessionToken))
@@ -244,6 +288,11 @@ public sealed partial class FootballManagerService : IFootballManagerService
         return Success($"התפקיד של {target.Username} עודכן.");
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Set User Blocked. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Map Football Manager Web Api, Set User Blocked Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="isBlocked">דגל המציין אם המצב או הפעולה מופעלים.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto SetUserBlocked(string sessionToken, int userId, bool isBlocked)
     {
         if (!TryGetAdmin(sessionToken))
@@ -272,6 +321,12 @@ public sealed partial class FootballManagerService : IFootballManagerService
             : $"החסימה של {target.Username} בוטלה.");
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Players ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Seed Demo Content, Get Players.</summary>
+    /// <param name="searchText">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <param name="position">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <param name="minimumRating">ערך מסוג int שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="maximumRating">ערך מסוג int שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public PlayersResponseDto GetPlayers(string searchText, string position, int minimumRating, int maximumRating)
     {
         if (minimumRating < 0 || maximumRating > 100 || minimumRating > maximumRating)
@@ -287,6 +342,8 @@ public sealed partial class FootballManagerService : IFootballManagerService
         };
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Teams ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Seed Demo Content, Get Teams.</summary>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public TeamsResponseDto GetTeams() => new()
     {
         Succeeded = true,
@@ -294,6 +351,9 @@ public sealed partial class FootballManagerService : IFootballManagerService
         Teams = _football.GetTeams().ToList()
     };
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Team Roster ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Seed Demo Content, Get Team Roster.</summary>
+    /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public PlayersResponseDto GetTeamRoster(int teamId)
     {
         if (teamId <= 0)
@@ -309,6 +369,9 @@ public sealed partial class FootballManagerService : IFootballManagerService
         };
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get My Favorites ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Map Football Manager Web Api, Get My Favorites Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public PlayersResponseDto GetMyFavorites(string sessionToken)
     {
         if (!TryGetUserWithRole(sessionToken, "Player", out var player))
@@ -324,6 +387,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
         };
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Add Favorite. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת; מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Add Favorite, Map Football Manager Web Api.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto AddFavorite(string sessionToken, int playerId)
     {
         if (!TryGetUserWithRole(sessionToken, "Player", out _))
@@ -347,6 +414,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Remove Favorite. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Remove Favorite, Map Football Manager Web Api.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto RemoveFavorite(string sessionToken, int playerId)
     {
         if (!TryGetUserWithRole(sessionToken, "Player", out var player))
@@ -359,6 +430,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
             : Failure("השחקן לא נמצא ברשימת המועדפים שלך.");
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Save Player. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת; מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Seed Demo Content, Save Player.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="player">נתוני השחקן או מזהה השחקן.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto SavePlayer(string sessionToken, PlayerDto player)
     {
         if (!TryGetUserWithRole(sessionToken, "Manager", out _))
@@ -384,6 +459,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Delete Player. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת; מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Delete Player, Map Football Manager Web Api.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto DeletePlayer(string sessionToken, int playerId)
     {
         if (!TryGetUserWithRole(sessionToken, "Manager", out _))
@@ -403,6 +482,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Save Team. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת; מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Seed Demo Content, Save Team.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="team">נתוני הקבוצה או מזהה הקבוצה.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto SaveTeam(string sessionToken, TeamDto team)
     {
         if (!TryGetUserWithRole(sessionToken, "Manager", out _))
@@ -428,6 +511,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Delete Team. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת; מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Delete Team, Map Football Manager Web Api.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto DeleteTeam(string sessionToken, int teamId)
     {
         if (!TryGetUserWithRole(sessionToken, "Manager", out _))
@@ -447,6 +534,11 @@ public sealed partial class FootballManagerService : IFootballManagerService
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Add Player To Team. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת; מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Seed Demo Content, Add Player To Team.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto AddPlayerToTeam(string sessionToken, int teamId, int playerId)
     {
         if (!TryGetUserWithRole(sessionToken, "Manager", out _))
@@ -470,6 +562,11 @@ public sealed partial class FootballManagerService : IFootballManagerService
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Remove Player From Team. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Remove Player From Team, Map Football Manager Web Api.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto RemovePlayerFromTeam(string sessionToken, int teamId, int playerId)
     {
         if (!TryGetUserWithRole(sessionToken, "Manager", out _))
@@ -482,11 +579,19 @@ public sealed partial class FootballManagerService : IFootballManagerService
             : Failure("השחקן לא נמצא בסגל הזה.");
     }
 
+    /// <summary>מנסה לבצע את הפעולה Try Get Admin ומחזירה תוצאה שמאפשרת לקוד הקורא לזהות הצלחה או כישלון. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Get Managed Users, Create Managed User.</summary>
+    /// <param name="token">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     private bool TryGetAdmin(string token)
     {
         return TryGetUserWithRole(token, "Admin", out _);
     }
 
+    /// <summary>בודקת קודם שהאסימון משויך לחשבון פעיל ואז משווה את ה־Role שנשמר באותו חשבון לתפקיד הנדרש. המתודות המוגנות בשרת קוראות לה; היא אינה מקבלת תפקיד מהלקוח.</summary>
+    /// <param name="token">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="role">סוג המשתמש או התפקיד המבוקש; השרת מאמת הרשאות לפי החשבון.</param>
+    /// <param name="user">ערך מסוג UserRecord שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     private bool TryGetUserWithRole(string token, string role, out UserRecord user)
     {
         if (!TryGetAuthenticatedUser(token, out user))
@@ -497,8 +602,13 @@ public sealed partial class FootballManagerService : IFootballManagerService
         return user.Role == role;
     }
 
+    /// <summary>מאתרת מזהה משתמש מתוך LoginSessionStore, טוענת את הרשומה מ־Access ודוחה Session שפג או חשבון חסום. מחזירה UserRecord פעיל או false, ומשותפת לבדיקות התפקידים.</summary>
+    /// <param name="token">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="user">ערך מסוג UserRecord שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     private bool TryGetAuthenticatedUser(string token, out UserRecord user)
     {
+        // האסימון נבדק בשרת מול מאגר ה־Sessions ואז נשלף המשתמש ממסד הנתונים.
         var userId = _sessions.FindUserId(token);
         var currentUser = userId is null ? null : _users.FindById(userId.Value);
         if (currentUser is null || currentUser.IsBlocked)
@@ -512,6 +622,9 @@ public sealed partial class FootballManagerService : IFootballManagerService
         return true;
     }
 
+    /// <summary>בודקת את תקינות הנתונים עבור Validate Player ומחזירה את תוצאת הבדיקה כדי למנוע המשך עם קלט שגוי. נקראת בקוד מתוך Save Player.</summary>
+    /// <param name="player">נתוני השחקן או מזהה השחקן.</param>
+    /// <returns>הודעת שגיאה אם הבדיקה נכשלה, או null אם הנתונים תקינים.</returns>
     private static string? ValidatePlayer(PlayerDto? player)
     {
         if (player is null || string.IsNullOrWhiteSpace(player.FirstName) || string.IsNullOrWhiteSpace(player.LastName))
@@ -538,6 +651,9 @@ public sealed partial class FootballManagerService : IFootballManagerService
         return null;
     }
 
+    /// <summary>בודקת את תקינות הנתונים עבור Validate Team ומחזירה את תוצאת הבדיקה כדי למנוע המשך עם קלט שגוי. נקראת בקוד מתוך Save Team.</summary>
+    /// <param name="team">נתוני הקבוצה או מזהה הקבוצה.</param>
+    /// <returns>הודעת שגיאה אם הבדיקה נכשלה, או null אם הנתונים תקינים.</returns>
     private static string? ValidateTeam(TeamDto? team)
     {
         if (team is null || string.IsNullOrWhiteSpace(team.Name) ||
@@ -562,9 +678,15 @@ public sealed partial class FootballManagerService : IFootballManagerService
         return null;
     }
 
+    /// <summary>מבצעת את שלב המערכת Success באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Register, Logout.</summary>
+    /// <param name="message">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     private static OperationResultDto Success(string message) =>
         new() { Succeeded = true, Message = message };
 
+    /// <summary>מבצעת את שלב המערכת Failure באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Register, Create Managed User.</summary>
+    /// <param name="message">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     private static OperationResultDto Failure(string message) =>
         new() { Succeeded = false, Message = message };
 }

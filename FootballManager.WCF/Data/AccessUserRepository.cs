@@ -3,6 +3,7 @@ using FootballManager.Contracts;
 
 namespace FootballManager.WCF.Data;
 
+/// <summary>מודל פנימי של שורת Users בצד השרת. הוא כולל PasswordHash לצורך אימות אך אינו DTO שמוצג למשתמש.</summary>
 public sealed class UserRecord
 {
     public int UserId { get; set; }
@@ -12,15 +13,21 @@ public sealed class UserRecord
     public bool IsBlocked { get; set; }
 }
 
+/// <summary>מאגר חשבונות שמבצע שאילתות ושינויים בטבלת Users דרך OleDb. שירות WCF משתמש בו אחרי בדיקות הרשאה; הלקוח אינו ניגש למסד.</summary>
 public sealed class AccessUserRepository
 {
     private readonly AccessDatabase _database;
 
+    /// <summary>מבצעת את שלב המערכת Access User Repository באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="database">ערך מסוג AccessDatabase שהפעולה צריכה כדי לבצע את תפקידה.</param>
     public AccessUserRepository(AccessDatabase database)
     {
         _database = database;
     }
 
+    /// <summary>נקראת מתהליך Login. מחפשת שורת Users לפי Username בעזרת פרמטר OleDb, וממירה אותה ל־UserRecord כדי שהשירות יבדוק גיבוב, Role וחסימה. מחזירה null אם החשבון לא נמצא.</summary>
+    /// <param name="username">שם המשתמש שנקלט או נשמר.</param>
+    /// <returns>ערך מסוג UserRecord? שמשמש את הקוד הקורא.</returns>
     public UserRecord? FindByUsername(string username)
     {
         using var connection = _database.OpenConnection();
@@ -32,6 +39,9 @@ public sealed class AccessUserRepository
         return reader.Read() ? ReadUser(reader) : null;
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Find By Id ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Delete Managed User, Update User Role.</summary>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>ערך מסוג UserRecord? שמשמש את הקוד הקורא.</returns>
     public UserRecord? FindById(int userId)
     {
         using var connection = _database.OpenConnection();
@@ -43,11 +53,20 @@ public sealed class AccessUserRepository
         return reader.Read() ? ReadUser(reader) : null;
     }
 
+    /// <summary>יוצרת חשבון הרשמה ציבורי בתפקיד Player. היא מקבלת PasswordHash שכבר יצר שירות WCF ומחזירה false אם שם המשתמש הייחודי כבר תפוס.</summary>
+    /// <param name="username">שם המשתמש שנקלט או נשמר.</param>
+    /// <param name="passwordHash">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool TryCreatePublicAccount(string username, string passwordHash)
     {
         return TryInsertAccount(username, "Player", passwordHash);
     }
 
+    /// <summary>יוצרת חשבון לפי תפקיד שהתקבל מפעולת אדמין מורשית. מוודאת שה־Role שייך ל־Player, Manager או Admin לפני ניסיון כתיבה.</summary>
+    /// <param name="username">שם המשתמש שנקלט או נשמר.</param>
+    /// <param name="role">סוג המשתמש או התפקיד המבוקש; השרת מאמת הרשאות לפי החשבון.</param>
+    /// <param name="passwordHash">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool TryCreateManagedAccount(string username, string role, string passwordHash)
     {
         if (role is not ("Player" or "Manager" or "Admin"))
@@ -58,6 +77,9 @@ public sealed class AccessUserRepository
         return TryInsertAccount(username, role, passwordHash);
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Create Demo Accounts. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך אתחול.</summary>
+    /// <param name="playerPasswordHash">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
+    /// <param name="managerPasswordHash">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
     public void CreateDemoAccounts(string playerPasswordHash, string managerPasswordHash)
     {
         using var connection = _database.OpenConnection();
@@ -83,6 +105,8 @@ public sealed class AccessUserRepository
         transaction.Commit();
     }
 
+    /// <summary>מבצעת את שלב המערכת Prepare Demo Accounts באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך אתחול.</summary>
+    /// <param name="accounts">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
     public void PrepareDemoAccounts(IReadOnlyList<(string Username, string Role, string PasswordHash)> accounts)
     {
         using var connection = _database.OpenConnection();
@@ -109,6 +133,11 @@ public sealed class AccessUserRepository
         transaction.Commit();
     }
 
+    /// <summary>מנסה לבצע את הפעולה Try Insert Account ומחזירה תוצאה שמאפשרת לקוד הקורא לזהות הצלחה או כישלון. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Try Create Public Account, Try Create Managed Account.</summary>
+    /// <param name="username">שם המשתמש שנקלט או נשמר.</param>
+    /// <param name="role">סוג המשתמש או התפקיד המבוקש; השרת מאמת הרשאות לפי החשבון.</param>
+    /// <param name="passwordHash">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     private bool TryInsertAccount(string username, string role, string passwordHash)
     {
         using var connection = _database.OpenConnection();
@@ -132,6 +161,12 @@ public sealed class AccessUserRepository
         return true;
     }
 
+    /// <summary>מבצעת את שלב המערכת Insert Account באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Create Demo Accounts, Try Insert Account.</summary>
+    /// <param name="connection">ערך מסוג OleDbConnection שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="transaction">ערך מסוג OleDbTransaction שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="username">שם המשתמש שנקלט או נשמר.</param>
+    /// <param name="role">סוג המשתמש או התפקיד המבוקש; השרת מאמת הרשאות לפי החשבון.</param>
+    /// <param name="passwordHash">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
     private static void InsertAccount(
         OleDbConnection connection,
         OleDbTransaction transaction,
@@ -149,6 +184,8 @@ public sealed class AccessUserRepository
         insert.ExecuteNonQuery();
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get All ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך אתחול, Get Managed Users.</summary>
+    /// <returns>רשימת הרשומות שנשלפו.</returns>
     public IReadOnlyList<ManagedUserDto> GetAll()
     {
         var users = new List<ManagedUserDto>();
@@ -171,6 +208,8 @@ public sealed class AccessUserRepository
         return users;
     }
 
+    /// <summary>מבצעת את שלב המערכת Count Active Admins באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Delete Managed User, Update User Role.</summary>
+    /// <returns>ערך מסוג int שמשמש את הקוד הקורא.</returns>
     public int CountActiveAdmins()
     {
         using var connection = _database.OpenConnection();
@@ -180,6 +219,10 @@ public sealed class AccessUserRepository
         return Convert.ToInt32(command.ExecuteScalar());
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Update Role. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Update User Role.</summary>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="role">סוג המשתמש או התפקיד המבוקש; השרת מאמת הרשאות לפי החשבון.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool UpdateRole(int userId, string role)
     {
         using var connection = _database.OpenConnection();
@@ -191,6 +234,10 @@ public sealed class AccessUserRepository
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Set Blocked. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Set User Blocked.</summary>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="isBlocked">דגל המציין אם המצב או הפעולה מופעלים.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool SetBlocked(int userId, bool isBlocked)
     {
         using var connection = _database.OpenConnection();
@@ -202,6 +249,9 @@ public sealed class AccessUserRepository
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Delete User. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Delete Managed User.</summary>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool DeleteUser(int userId)
     {
         using var connection = _database.OpenConnection();
@@ -212,6 +262,8 @@ public sealed class AccessUserRepository
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>בודקת את התנאי Any Admin Exists ומחזירה תשובת כן או לא לשימוש בקוד הקורא או בממשק. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך אתחול.</summary>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool AnyAdminExists()
     {
         using var connection = _database.OpenConnection();
@@ -221,6 +273,9 @@ public sealed class AccessUserRepository
         return Convert.ToInt32(command.ExecuteScalar()) > 0;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Create Initial Admin. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך אתחול.</summary>
+    /// <param name="username">שם המשתמש שנקלט או נשמר.</param>
+    /// <param name="passwordHash">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
     public void CreateInitialAdmin(string username, string passwordHash)
     {
         using var connection = _database.OpenConnection();
@@ -251,6 +306,9 @@ public sealed class AccessUserRepository
         transaction.Commit();
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Read User ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Find By Username, Find By Id.</summary>
+    /// <param name="reader">ערך מסוג OleDbDataReader שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>ערך מסוג UserRecord שמשמש את הקוד הקורא.</returns>
     private static UserRecord ReadUser(OleDbDataReader reader)
     {
         return new UserRecord

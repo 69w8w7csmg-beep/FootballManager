@@ -9,6 +9,7 @@ using FootballManager.WPF.ViewModels;
 
 namespace FootballManager.WPF.Views;
 
+/// <summary>חלון WPF הראשי. הוא מנהל כניסה, הרשמה, דשבורד ותוכן קיים, ומעביר בקשות ל־WcfServiceClient ולחלונות ViewModel.</summary>
 public partial class MainWindow : Window
 {
     private readonly WcfServiceClient _serviceClient = new();
@@ -24,6 +25,7 @@ public partial class MainWindow : Window
     private string _currentRole => _session.Role;
     private string _currentUsername => _session.Username;
 
+    /// <summary>מבצעת את שלב המערכת Main Window באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
     public MainWindow()
     {
         InitializeComponent();
@@ -47,17 +49,28 @@ public partial class MainWindow : Window
             ? RegisterConfirmPasswordTextBox.Text
             : RegisterConfirmPasswordBox.Password;
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Open Login_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void OpenLogin_Click(object sender, RoutedEventArgs e) => OpenAuthentication(0);
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Open Matches_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך. נקראת בקוד מתוך Show Matches_Click.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void OpenMatches_Click(object sender, RoutedEventArgs e) =>
         new MatchesWindow(_serviceClient, _session) { Owner = this }.ShowDialog();
 
+    /// <summary>מופעלת מכפתור C4 בדשבורד. בודקת את התפקיד המקומי כדי להציג את החלון רק למאמן, יוצרת את ה־ViewModel ופותחת את מסך ההעברות והסטטיסטיקות. השרת בודק הרשאות שוב בכל בקשה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void OpenCycle4_Click(object sender, RoutedEventArgs e)
     {
         if (_currentRole != "Manager") return;
         new Cycle4Window(_serviceClient, _session, RememberSavedTransfer) { Owner = this }.ShowDialog();
     }
 
+    /// <summary>מבצעת את שלב המערכת Remember Saved Transfer באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="transfer">נתוני העברת השחקן שעליהם פועלת הפעולה.</param>
     private void RememberSavedTransfer(TransferDto transfer)
     {
         // שומרים העתק של הבקשה האחרונה כדי להראות שחסימת השחקן חלה על אותה פעולה.
@@ -72,12 +85,16 @@ public partial class MainWindow : Window
         };
     }
 
+    /// <summary>מופעלת מכפתור בדיקת הרשאה אצל Player. שולחת ל־WCF את אותה העברה שנשמרה קודם עם אסימון השחקן. השרת אמור לחסום ב־403; ההודעה מוצגת במסך וחריגת תקשורת מוצגת ככשל גישה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void PlayerTransferAttempt_Click(object sender, RoutedEventArgs e)
     {
         if (_currentRole != "Player" || _lastSavedTransfer is null) return;
         PlayerTransferAttemptButton.IsEnabled = false;
         try
         {
+            // שולחים את אותה בקשת שמירה כדי להדגים שאכיפת ההרשאה נמצאת בשרת.
             var result = await _serviceClient.SaveTransferAsync(_sessionToken, _lastSavedTransfer);
             PlayerTransferStatus.Text = result.Message;
         }
@@ -92,14 +109,20 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Open Player Registration_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void OpenPlayerRegistration_Click(object sender, RoutedEventArgs e) => OpenRegistration();
 
+    /// <summary>פותחת את המסך או המשאב Open Registration בעקבות פעולת המשתמש. נקראת בקוד מתוך Open Player Registration_Click.</summary>
     private void OpenRegistration()
     {
         OpenAuthentication(1);
         UpdateRegistrationValidation();
     }
 
+    /// <summary>פותחת את המסך או המשאב Open Authentication בעקבות פעולת המשתמש. נקראת בקוד מתוך Open Login_Click, Open Registration.</summary>
+    /// <param name="tabIndex">ערך מסוג int שהפעולה צריכה כדי לבצע את תפקידה.</param>
     private void OpenAuthentication(int tabIndex)
     {
         GuestHomePanel.Visibility = Visibility.Collapsed;
@@ -109,6 +132,9 @@ public partial class MainWindow : Window
         AuthTabs.SelectedIndex = tabIndex;
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Show Guest_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void ShowGuest_Click(object sender, RoutedEventArgs e)
     {
         AuthPanel.Visibility = Visibility.Collapsed;
@@ -118,18 +144,26 @@ public partial class MainWindow : Window
         GuestHomePanel.Visibility = isLoggedIn ? Visibility.Collapsed : Visibility.Visible;
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Show Players_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void ShowPlayers_Click(object sender, RoutedEventArgs e)
     {
         OpenContentBrowser(0);
         await RefreshPublicPlayersAsync();
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Show Teams_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void ShowTeams_Click(object sender, RoutedEventArgs e)
     {
         OpenContentBrowser(1);
         await RefreshPublicTeamsAsync();
     }
 
+    /// <summary>פותחת את המסך או המשאב Open Content Browser בעקבות פעולת המשתמש. נקראת בקוד מתוך Show Players_Click, Show Teams_Click.</summary>
+    /// <param name="selectedTab">ערך מסוג int שהפעולה צריכה כדי לבצע את תפקידה.</param>
     private void OpenContentBrowser(int selectedTab)
     {
         AuthPanel.Visibility = Visibility.Collapsed;
@@ -142,8 +176,13 @@ public partial class MainWindow : Window
         ContentTabs.SelectedIndex = selectedTab;
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Search Players_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void SearchPlayers_Click(object sender, RoutedEventArgs e) => await RefreshPublicPlayersAsync();
 
+    /// <summary>מבצעת את שלב המערכת Refresh Public Players Async באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Show Players_Click, Search Players_Click.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task RefreshPublicPlayersAsync()
     {
         try
@@ -159,6 +198,8 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מבצעת את שלב המערכת Refresh Public Teams Async באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Show Teams_Click.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task RefreshPublicTeamsAsync()
     {
         try
@@ -174,6 +215,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Public Teams List_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void PublicTeamsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (PublicTeamsList.SelectedItem is not TeamDto team)
@@ -194,11 +238,17 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Public Players List_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void PublicPlayersList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         AddFavoriteButton.IsEnabled = _currentRole == "Player" && PublicPlayersList.SelectedItem is PlayerDto;
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Add Favorite_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void AddFavorite_Click(object sender, RoutedEventArgs e)
     {
         if (_currentRole != "Player" || PublicPlayersList.SelectedItem is not PlayerDto player)
@@ -210,6 +260,9 @@ public partial class MainWindow : Window
         ContentMessageText.Text = result.Message;
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Remove Favorite_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void RemoveFavorite_Click(object sender, RoutedEventArgs e)
     {
         if (_currentRole != "Player" || FavoritesList.SelectedItem is not PlayerDto player)
@@ -226,8 +279,13 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Refresh Favorites_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void RefreshFavorites_Click(object sender, RoutedEventArgs e) => await RefreshFavoritesAsync();
 
+    /// <summary>מבצעת את שלב המערכת Refresh Favorites Async באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Remove Favorite_Click, Refresh Favorites_Click.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task RefreshFavoritesAsync()
     {
         try
@@ -242,6 +300,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Content Tabs_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void ContentTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded || !ReferenceEquals(e.Source, ContentTabs))
@@ -259,6 +320,8 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מבצעת את שלב המערכת Refresh Manager Content Async באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Content Tabs_Selection Changed, Save Player_Click.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task RefreshManagerContentAsync()
     {
         try
@@ -278,6 +341,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Manager Players List_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void ManagerPlayersList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (ManagerPlayersList.SelectedItem is not PlayerDto player)
@@ -296,6 +362,9 @@ public partial class MainWindow : Window
         ManagerPlayerDefense.Text = player.Defense.ToString();
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Clear Player Form_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך. נקראת בקוד מתוך Save Player_Click, Delete Player_Click.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void ClearPlayerForm_Click(object sender, RoutedEventArgs e)
     {
         ManagerPlayersList.SelectedItem = null;
@@ -310,6 +379,9 @@ public partial class MainWindow : Window
         ManagerPlayerDefense.Clear();
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Save Player_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void SavePlayer_Click(object sender, RoutedEventArgs e)
     {
         if (!int.TryParse(ManagerPlayerAge.Text, out var age) ||
@@ -345,6 +417,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Delete Player_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void DeletePlayer_Click(object sender, RoutedEventArgs e)
     {
         if (ManagerPlayersList.SelectedItem is not PlayerDto player)
@@ -368,6 +443,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Manager Teams List_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void ManagerTeamsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (ManagerTeamsList.SelectedItem is not TeamDto team)
@@ -383,6 +461,9 @@ public partial class MainWindow : Window
         _ = RefreshManagerRosterAsync(team.TeamId);
     }
 
+    /// <summary>מבצעת את שלב המערכת Refresh Manager Roster Async באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Manager Teams List_Selection Changed, Add Roster Player_Click.</summary>
+    /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task RefreshManagerRosterAsync(int teamId)
     {
         try
@@ -396,6 +477,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Clear Team Form_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך. נקראת בקוד מתוך Save Team_Click, Delete Team_Click.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void ClearTeamForm_Click(object sender, RoutedEventArgs e)
     {
         ManagerTeamsList.SelectedItem = null;
@@ -406,6 +490,9 @@ public partial class MainWindow : Window
         ManagerRosterList.ItemsSource = null;
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Save Team_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void SaveTeam_Click(object sender, RoutedEventArgs e)
     {
         if (!decimal.TryParse(ManagerTeamBudget.Text, out var budget))
@@ -431,6 +518,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Delete Team_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void DeleteTeam_Click(object sender, RoutedEventArgs e)
     {
         if (ManagerTeamsList.SelectedItem is not TeamDto team)
@@ -454,6 +544,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Add Roster Player_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void AddRosterPlayer_Click(object sender, RoutedEventArgs e)
     {
         if (ManagerTeamsList.SelectedItem is not TeamDto team || RosterPlayerPicker.SelectedItem is not PlayerDto player)
@@ -467,6 +560,9 @@ public partial class MainWindow : Window
         await RefreshManagerRosterAsync(team.TeamId);
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Remove Roster Player_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void RemoveRosterPlayer_Click(object sender, RoutedEventArgs e)
     {
         if (ManagerTeamsList.SelectedItem is not TeamDto team || ManagerRosterList.SelectedItem is not PlayerDto player)
@@ -480,6 +576,9 @@ public partial class MainWindow : Window
         await RefreshManagerRosterAsync(team.TeamId);
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Show Matches_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void ShowMatches_Click(object sender, RoutedEventArgs e)
     {
         if (_currentRole is "Player" or "Manager")
@@ -488,6 +587,9 @@ public partial class MainWindow : Window
             ApplyMatchFilter("All");
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Show Lineups_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void ShowLineups_Click(object sender, RoutedEventArgs e)
     {
         if (MatchesListBox.SelectedItem is null && MatchesListBox.Items.Count > 0)
@@ -499,6 +601,9 @@ public partial class MainWindow : Window
         SelectedHomeTeam.Focus();
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Match Filter_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void MatchFilter_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: string filter })
@@ -507,6 +612,8 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מבצעת את שלב המערכת Apply Match Filter באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Main Window, Show Matches_Click.</summary>
+    /// <param name="filter">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
     private void ApplyMatchFilter(string filter)
     {
         SetMatchFilterAppearance(AllMatchesFilter, filter == "All");
@@ -520,6 +627,9 @@ public partial class MainWindow : Window
         NoMatchesText.Visibility = filtered.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Set Match Filter Appearance. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Apply Match Filter.</summary>
+    /// <param name="button">ערך מסוג Button שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="selected">דגל המציין אם המצב או הפעולה מופעלים.</param>
     private static void SetMatchFilterAppearance(Button button, bool selected)
     {
         button.Background = selected
@@ -530,6 +640,9 @@ public partial class MainWindow : Window
             : new SolidColorBrush(Color.FromRgb(238, 243, 248));
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Matches List Box_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void MatchesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (MatchesListBox.SelectedItem is not GuestMatch selected)
@@ -541,12 +654,18 @@ public partial class MainWindow : Window
         SelectedMatchTitle.Text = $"{selected.HomeTeam} נגד {selected.AwayTeam} · הרכב להמחשה";
     }
 
+    /// <summary>מטפלת בהזדהות: שולחת פרטי כניסה לבדיקה בשירות ומחזירה את תוצאת ההתחברות.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void LoginInput_Changed(object sender, TextChangedEventArgs e)
     {
         _authentication.LoginUsernameTouched = true;
         UpdateLoginValidation();
     }
 
+    /// <summary>מטפלת בהזדהות: שולחת פרטי כניסה לבדיקה בשירות ומחזירה את תוצאת ההתחברות.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void LoginPassword_Changed(object sender, RoutedEventArgs e)
     {
         if (_syncingLoginPassword)
@@ -561,6 +680,9 @@ public partial class MainWindow : Window
         UpdateLoginValidation();
     }
 
+    /// <summary>מטפלת בהזדהות: שולחת פרטי כניסה לבדיקה בשירות ומחזירה את תוצאת ההתחברות.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void LoginPasswordText_Changed(object sender, TextChangedEventArgs e)
     {
         if (_syncingLoginPassword)
@@ -575,6 +697,9 @@ public partial class MainWindow : Window
         UpdateLoginValidation();
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Login Show Password_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void LoginShowPassword_Click(object sender, RoutedEventArgs e)
     {
         var show = LoginShowPasswordButton.IsChecked == true;
@@ -591,12 +716,18 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מבצעת את שלב המערכת Registration Input_Changed באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void RegistrationInput_Changed(object sender, TextChangedEventArgs e)
     {
         _authentication.RegisterUsernameTouched = true;
         UpdateRegistrationValidation();
     }
 
+    /// <summary>מבצעת את שלב המערכת Register Password_Changed באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void RegisterPassword_Changed(object sender, RoutedEventArgs e)
     {
         if (_syncingRegisterPassword)
@@ -611,6 +742,9 @@ public partial class MainWindow : Window
         UpdateRegistrationValidation();
     }
 
+    /// <summary>מבצעת את שלב המערכת Register Password Text_Changed באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void RegisterPasswordText_Changed(object sender, TextChangedEventArgs e)
     {
         if (_syncingRegisterPassword)
@@ -625,6 +759,9 @@ public partial class MainWindow : Window
         UpdateRegistrationValidation();
     }
 
+    /// <summary>מבצעת את שלב המערכת Register Confirm Password_Changed באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void RegisterConfirmPassword_Changed(object sender, RoutedEventArgs e)
     {
         if (_syncingRegisterConfirmation)
@@ -639,6 +776,9 @@ public partial class MainWindow : Window
         UpdateRegistrationValidation();
     }
 
+    /// <summary>מבצעת את שלב המערכת Register Confirm Password Text_Changed באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void RegisterConfirmPasswordText_Changed(object sender, TextChangedEventArgs e)
     {
         if (_syncingRegisterConfirmation)
@@ -653,6 +793,9 @@ public partial class MainWindow : Window
         UpdateRegistrationValidation();
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Register Show Password_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void RegisterShowPassword_Click(object sender, RoutedEventArgs e)
     {
         var show = RegisterShowPasswordButton.IsChecked == true;
@@ -669,6 +812,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Register Show Confirm_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void RegisterShowConfirm_Click(object sender, RoutedEventArgs e)
     {
         var show = RegisterShowConfirmButton.IsChecked == true;
@@ -685,6 +831,7 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>קוראת ל־AuthenticationViewModel לבדוק שם משתמש וסיסמה שהוקלדו, מציגה הודעה ומפעילה או מכבה את כפתור הכניסה. זו בדיקת קלט מקומית בלבד; אימות החשבון נעשה ב־WCF.</summary>
     private void UpdateLoginValidation()
     {
         var validation = _authentication.EvaluateLogin(LoginUsernameTextBox.Text, LoginPassword);
@@ -692,6 +839,7 @@ public partial class MainWindow : Window
         LoginButton.IsEnabled = validation.CanSubmit;
     }
 
+    /// <summary>מעבירה שם משתמש, סיסמה ואישור ל־AuthenticationViewModel, מציגה רמזים ליד השדות ומאפשרת שליחה רק כשהנתונים המקומיים תקינים. השירות בודק אותם שוב לפני שמירת חשבון.</summary>
     private void UpdateRegistrationValidation()
     {
         var validation = _authentication.EvaluateRegistration(
@@ -704,18 +852,25 @@ public partial class MainWindow : Window
         RegisterButton.IsEnabled = validation.CanSubmit;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Set Registration Hint. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Update Registration Validation.</summary>
+    /// <param name="hint">ערך מסוג TextBlock שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="message">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
     private static void SetRegistrationHint(TextBlock hint, string? message)
     {
         hint.Text = message ?? string.Empty;
         hint.Visibility = string.IsNullOrEmpty(message) ? Visibility.Collapsed : Visibility.Visible;
     }
 
+    /// <summary>שולחת שם משתמש וסיסמה ל־WCF. השירות בודק תקינות, מגבב את הסיסמה ושומר את החשבון. התשובה מוצגת למשתמש; הצלחה ממלאת את שם הכניסה ומעבירה ללשונית ההתחברות.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void Register_Click(object sender, RoutedEventArgs e)
     {
         RegisterButton.IsEnabled = false;
         RegisterMessageText.Text = "שולח הרשמה לשירות...";
         try
         {
+            // השמירה והגיבוב מבוצעים בשרת; הלקוח שולח בקשת DTO בלבד.
             var result = await _serviceClient.RegisterAsync(new RegisterRequestDto
             {
                 Username = RegisterUsernameTextBox.Text.Trim(),
@@ -739,12 +894,16 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>שולחת פרטי כניסה ל־WCF, שומרת את Session שחזר בהצלחה ומעדכנת את הדשבורד לפי Role שהשרת החזיר. השירות מאמת PasswordHash; הסתרת כרטיסיות אינה תחליף לבדיקת ההרשאה בשרת. שגיאות מוצגות במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void Login_Click(object sender, RoutedEventArgs e)
     {
         LoginButton.IsEnabled = false;
         LoginMessageText.Text = "מתחבר לשירות...";
         try
         {
+            // אימות הסיסמה נעשה בשירות מול הגיבוב שנשמר ב־Users.
             var result = await _serviceClient.LoginAsync(new LoginRequestDto
             {
                 Username = LoginUsernameTextBox.Text.Trim(),
@@ -757,6 +916,7 @@ public partial class MainWindow : Window
                 return;
             }
 
+            // רכיב Session אחד מעביר את האסימון והמשתמש לקריאות השירות הבאות.
             _session.Start(result);
             WelcomeText.Text = $"{_currentUsername} | תפקיד: {RoleInHebrew(_currentRole)}";
             RoleHomeText.Text = _currentRole switch
@@ -768,6 +928,7 @@ public partial class MainWindow : Window
             AdminPanel.Visibility = _currentRole == "Admin" ? Visibility.Visible : Visibility.Collapsed;
             AdminCardsPanel.Visibility = _currentRole == "Admin" ? Visibility.Visible : Visibility.Collapsed;
             OpenMatchesButton.Visibility = _currentRole is "Player" or "Manager" ? Visibility.Visible : Visibility.Collapsed;
+            // זו התאמת תצוגה לנוחות המשתמש; WCF עדיין אוכף את התפקיד בכל מתודת C4.
             OpenCycle4Button.Visibility = _currentRole == "Manager" ? Visibility.Visible : Visibility.Collapsed;
             PlayerTransferAttemptButton.Visibility = _currentRole == "Player" && _lastSavedTransfer is not null
                 ? Visibility.Visible : Visibility.Collapsed;
@@ -796,6 +957,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מבקשת מהשירות לבטל את האסימון, מנקה את Session ואת נתוני המסכים ומחזירה את החלון למצב אורח. אם השירות אינו זמין, מצב הלקוח עדיין מתנקה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void Logout_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -807,7 +971,7 @@ public partial class MainWindow : Window
         }
         catch
         {
-            // A local WCF restart also ends the server-side session.
+            // אם WCF הופעל מחדש, גם ה־Session שבשרת כבר אינו קיים.
         }
 
         _session.Clear();
@@ -836,8 +1000,14 @@ public partial class MainWindow : Window
         UpdateLoginValidation();
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Refresh Users_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void RefreshUsers_Click(object sender, RoutedEventArgs e) => await RefreshManagedUsersAsync();
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Admin Card Users_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void AdminCardUsers_Click(object sender, RoutedEventArgs e)
     {
         AdminPanel.Header = "ניהול משתמשים";
@@ -845,6 +1015,9 @@ public partial class MainWindow : Window
         AdminMessageText.Text = "ניהול חשבונות פעיל: יצירה, שינוי תפקיד, חסימה ומחיקה.";
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Admin Card Control_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void AdminCardControl_Click(object sender, RoutedEventArgs e)
     {
         AdminPanel.Header = "בקרה על חשבונות";
@@ -853,6 +1026,9 @@ public partial class MainWindow : Window
         AdminMessageText.Text = $"חשבונות חסומים: {_cachedManagedUsers.Count(user => user.IsBlocked)}. בחר חשבון כדי לבטל חסימה.";
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Admin Card Stats_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void AdminCardStats_Click(object sender, RoutedEventArgs e)
     {
         AdminPanel.Header = "סטטיסטיקת חשבונות";
@@ -865,6 +1041,9 @@ public partial class MainWindow : Window
         AdminMessageText.Text = $"סה״כ {_cachedManagedUsers.Count} חשבונות · פעילים {active} · שחקנים {players} · מאמנים {managers} · מנהלי מערכת {admins}.";
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Admin Card Communication_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void AdminCardCommunication_Click(object sender, RoutedEventArgs e)
     {
         AdminPanel.Header = "ספר משתמשים · תקשורת";
@@ -873,6 +1052,8 @@ public partial class MainWindow : Window
         AdminMessageText.Text = "רשימת החשבונות נטענת מטבלת Users. במסד אין כתובות דוא״ל או הודעות, לכן לא מוצגת שליחת הודעות מדומה.";
     }
 
+    /// <summary>מבצעת את שלב המערכת Refresh Managed Users Async באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Login_Click, Refresh Users_Click.</summary>
+    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task RefreshManagedUsersAsync()
     {
         try
@@ -892,6 +1073,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Admin Users List_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void AdminUsersList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (AdminUsersList.SelectedItem is not ManagedUserDto selected)
@@ -911,6 +1095,9 @@ public partial class MainWindow : Window
         DeleteManagedUserButton.IsEnabled = true;
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Admin Role Combo Box_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void AdminRoleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (ChangeRoleButton is null || AdminUsersList is null || sender is not ComboBox roleComboBox)
@@ -923,6 +1110,9 @@ public partial class MainWindow : Window
             roleComboBox.SelectedItem is ComboBoxItem;
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Change Role_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void ChangeRole_Click(object sender, RoutedEventArgs e)
     {
         if (AdminUsersList.SelectedItem is not ManagedUserDto selected ||
@@ -942,6 +1132,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Block User_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void BlockUser_Click(object sender, RoutedEventArgs e)
     {
         if (AdminUsersList.SelectedItem is not ManagedUserDto selected)
@@ -960,10 +1153,17 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מבצעת את שלב המערכת Admin Create Input_Changed באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void AdminCreateInput_Changed(object sender, RoutedEventArgs e) => UpdateAdminCreateValidation();
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Admin Create Role_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private void AdminCreateRole_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateAdminCreateValidation();
 
+    /// <summary>מבצעת את פעולת הנתונים Update Admin Create Validation. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Admin Create Input_Changed, Admin Create Role_Selection Changed.</summary>
     private void UpdateAdminCreateValidation()
     {
         if (CreateManagedUserButton is null || AdminNewRoleComboBox is null)
@@ -979,6 +1179,9 @@ public partial class MainWindow : Window
             roleSelected;
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Create Managed User_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void CreateManagedUser_Click(object sender, RoutedEventArgs e)
     {
         UpdateAdminCreateValidation();
@@ -1005,6 +1208,9 @@ public partial class MainWindow : Window
         UpdateAdminCreateValidation();
     }
 
+    /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Delete Managed User_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
+    /// <param name="sender">ערך מסוג object שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void DeleteManagedUser_Click(object sender, RoutedEventArgs e)
     {
         if (AdminUsersList.SelectedItem is not ManagedUserDto selected)
@@ -1032,6 +1238,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>מבצעת את שלב המערכת Role In Hebrew באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Login_Click.</summary>
+    /// <param name="role">סוג המשתמש או התפקיד המבוקש; השרת מאמת הרשאות לפי החשבון.</param>
+    /// <returns>מחרוזת שמייצגת את תוצאת הפעולה.</returns>
     private static string RoleInHebrew(string role) => role switch
     {
         "Admin" => "מנהל מערכת",

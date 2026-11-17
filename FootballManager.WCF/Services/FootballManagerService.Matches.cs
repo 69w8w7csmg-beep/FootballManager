@@ -7,8 +7,14 @@ using FootballManager.Contracts;
 
 namespace FootballManager.WCF.Services;
 
+/// <summary>מימוש חוזה SOAP/WCF בצד השרת. הוא מקבל DTOs מהלקוח, מאמת חשבונות ו־Session, בודק הרשאות ושולח פעולות למאגרי Access; שכבת WPF אינה פונה למסד.</summary>
 public sealed partial class FootballManagerService
 {
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Matches ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Get Matches, Get Matches Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="searchText">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <param name="matchDate">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public MatchesResponseDto GetMatches(string sessionToken, string searchText, DateTime? matchDate)
     {
         var denial = MatchAccessError(sessionToken, write: false);
@@ -19,6 +25,10 @@ public sealed partial class FootballManagerService
         return new MatchesResponseDto { Succeeded = true, Matches = _matches.GetMatches(searchText, matchDate) };
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Save Match. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Save Match Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="match">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto SaveMatch(string sessionToken, MatchDto match)
     {
         var denial = MatchAccessError(sessionToken, write: true);
@@ -42,6 +52,10 @@ public sealed partial class FootballManagerService
         }
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Delete Match. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Delete Match Async.</summary>
+    /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="matchId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto DeleteMatch(string sessionToken, int matchId)
     {
         var denial = MatchAccessError(sessionToken, write: true);
@@ -57,6 +71,10 @@ public sealed partial class FootballManagerService
         }
     }
 
+    /// <summary>מבצעת את שלב המערכת Match Access Error באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: בודקת זהות והרשאות בשרת. נקראת בקוד מתוך Get Matches, Save Match.</summary>
+    /// <param name="token">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
+    /// <param name="write">דגל המציין אם המצב או הפעולה מופעלים.</param>
+    /// <returns>הודעת שגיאה אם הבדיקה נכשלה, או null אם הנתונים תקינים.</returns>
     private string? MatchAccessError(string token, bool write)
     {
         HttpStatusCode status;

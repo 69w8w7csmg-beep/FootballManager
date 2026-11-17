@@ -4,15 +4,24 @@ using FootballManager.Contracts;
 
 namespace FootballManager.WCF.Data;
 
+/// <summary>מאגר נתוני Players, Teams, TeamPlayers ו־Favorites. הוא מבצע פעולות Access עבור שירות WCF ומחזיר DTOs ללקוח.</summary>
 public sealed class AccessFootballRepository
 {
     private readonly AccessDatabase _database;
 
+    /// <summary>מבצעת את שלב המערכת Access Football Repository באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
+    /// <param name="database">ערך מסוג AccessDatabase שהפעולה צריכה כדי לבצע את תפקידה.</param>
     public AccessFootballRepository(AccessDatabase database)
     {
         _database = database;
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Players ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Seed Demo Content, Get Players.</summary>
+    /// <param name="searchText">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <param name="position">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
+    /// <param name="minimumRating">ערך מסוג int שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="maximumRating">ערך מסוג int שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>רשימת הרשומות שנשלפו.</returns>
     public IReadOnlyList<PlayerDto> GetPlayers(string searchText, string position, int minimumRating, int maximumRating)
     {
         var conditions = new List<string> { "[Rating] BETWEEN ? AND ?" };
@@ -51,6 +60,7 @@ public sealed class AccessFootballRepository
         return players;
     }
 
+    /// <summary>מבצעת את שלב המערכת Seed Demo Content באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך אתחול.</summary>
     public void SeedDemoContent()
     {
         var teams = new[]
@@ -131,6 +141,8 @@ public sealed class AccessFootballRepository
         }
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Teams ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Seed Demo Content, Get Teams.</summary>
+    /// <returns>רשימת הרשומות שנשלפו.</returns>
     public IReadOnlyList<TeamDto> GetTeams()
     {
         using var connection = _database.OpenConnection();
@@ -147,6 +159,9 @@ public sealed class AccessFootballRepository
         return teams;
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Team Roster ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Seed Demo Content, Get Team Roster.</summary>
+    /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>רשימת הרשומות שנשלפו.</returns>
     public IReadOnlyList<PlayerDto> GetTeamRoster(int teamId)
     {
         using var connection = _database.OpenConnection();
@@ -167,6 +182,9 @@ public sealed class AccessFootballRepository
         return players;
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Favorites ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Get My Favorites.</summary>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>רשימת הרשומות שנשלפו.</returns>
     public IReadOnlyList<PlayerDto> GetFavorites(int userId)
     {
         using var connection = _database.OpenConnection();
@@ -187,6 +205,9 @@ public sealed class AccessFootballRepository
         return players;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Save Player. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Seed Demo Content, Save Player.</summary>
+    /// <param name="player">נתוני השחקן או מזהה השחקן.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool SavePlayer(PlayerDto player)
     {
         using var connection = _database.OpenConnection();
@@ -213,6 +234,9 @@ public sealed class AccessFootballRepository
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Delete Player. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Delete Player, Map Football Manager Web Api.</summary>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool DeletePlayer(int playerId)
     {
         using var connection = _database.OpenConnection();
@@ -221,6 +245,9 @@ public sealed class AccessFootballRepository
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Save Team. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Seed Demo Content, Save Team.</summary>
+    /// <param name="team">נתוני הקבוצה או מזהה הקבוצה.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool SaveTeam(TeamDto team)
     {
         using var connection = _database.OpenConnection();
@@ -248,6 +275,9 @@ public sealed class AccessFootballRepository
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Delete Team. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Delete Team, Map Football Manager Web Api.</summary>
+    /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool DeleteTeam(int teamId)
     {
         using var connection = _database.OpenConnection();
@@ -256,6 +286,9 @@ public sealed class AccessFootballRepository
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Add Favorite. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Add Favorite, Map Football Manager Web Api.</summary>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
     public void AddFavorite(int userId, int playerId)
     {
         using var connection = _database.OpenConnection();
@@ -267,6 +300,10 @@ public sealed class AccessFootballRepository
         command.ExecuteNonQuery();
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Remove Favorite. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Remove Favorite, Map Football Manager Web Api.</summary>
+    /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool RemoveFavorite(int userId, int playerId)
     {
         using var connection = _database.OpenConnection();
@@ -278,6 +315,9 @@ public sealed class AccessFootballRepository
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Add Player To Team. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Seed Demo Content, Add Player To Team.</summary>
+    /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
     public void AddPlayerToTeam(int teamId, int playerId)
     {
         using var connection = _database.OpenConnection();
@@ -290,6 +330,10 @@ public sealed class AccessFootballRepository
         command.ExecuteNonQuery();
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Remove Player From Team. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Remove Player From Team, Map Football Manager Web Api.</summary>
+    /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool RemovePlayerFromTeam(int teamId, int playerId)
     {
         using var connection = _database.OpenConnection();
@@ -301,6 +345,9 @@ public sealed class AccessFootballRepository
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מבצעת את פעולת הנתונים Add Player Values. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Save Player.</summary>
+    /// <param name="command">ערך מסוג OleDbCommand שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <param name="player">נתוני השחקן או מזהה השחקן.</param>
     private static void AddPlayerValues(OleDbCommand command, PlayerDto player)
     {
         command.Parameters.AddWithValue("@FirstName", player.FirstName);
@@ -314,6 +361,9 @@ public sealed class AccessFootballRepository
         command.Parameters.AddWithValue("@Defense", player.Defense);
     }
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Read Player ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Get Players, Get Team Roster.</summary>
+    /// <param name="reader">ערך מסוג OleDbDataReader שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     private static PlayerDto ReadPlayer(OleDbDataReader reader) => new()
     {
         PlayerId = Convert.ToInt32(reader["PlayerId"]),
@@ -328,6 +378,9 @@ public sealed class AccessFootballRepository
         Defense = Convert.ToInt32(reader["Defense"])
     };
 
+    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Read Team ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Get Teams.</summary>
+    /// <param name="reader">ערך מסוג OleDbDataReader שהפעולה צריכה כדי לבצע את תפקידה.</param>
+    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     private static TeamDto ReadTeam(OleDbDataReader reader) => new()
     {
         TeamId = Convert.ToInt32(reader["TeamId"]),

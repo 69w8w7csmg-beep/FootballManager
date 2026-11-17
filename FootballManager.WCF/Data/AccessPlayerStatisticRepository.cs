@@ -1,13 +1,20 @@
-// קריאה, שמירה ומחיקה של סטטיסטיקות משחק בטבלת PlayerStatistics הקיימת.
+// תפקיד הקובץ: קריאה, שמירה ומחיקה של סטטיסטיקות בטבלת PlayerStatistics.
+// שכבה: שכבת גישה לנתונים בצד שרת WCF.
+// משתמשים: FootballManagerService מפעיל את הפעולות לאחר בדיקת הרשאה.
+// קשר בפרויקט: המחלקה משתמשת ב־AccessDatabase וב־OleDb; המסך אינו ניגש אליה.
 using System.Data.OleDb;
 using FootballManager.Contracts;
 
 namespace FootballManager.WCF.Data;
 
+/// <summary>מאגר סטטיסטיקות C4 בטבלת PlayerStatistics. הוא קורא וממיר שורות DTO, ומבצע הוספה, עדכון ומחיקה דרך OleDb.</summary>
 public sealed class AccessPlayerStatisticRepository(AccessDatabase database)
 {
+    /// <summary>קוראת את שורות PlayerStatistics ומצרפת שמות שחקן ומשחק לצורך התצוגה. כל שורה מומרת ל־PlayerStatisticDto ומוחזרת לשירות.</summary>
+    /// <returns>רשימת הרשומות שנשלפו.</returns>
     public List<PlayerStatisticDto> GetStatistics()
     {
+        // כל שליפה מתבצעת בצד השרת דרך החיבור שמספק AccessDatabase.
         using var connection = database.OpenConnection();
         using var command = connection.CreateCommand();
         command.CommandText =
@@ -40,10 +47,14 @@ public sealed class AccessPlayerStatisticRepository(AccessDatabase database)
         return statistics;
     }
 
+    /// <summary>מוסיף שורת סטטיסטיקה חדשה אם StatisticId הוא 0, או מעדכן את השורה הקיימת. פרמטרי OleDb מעבירים את הערכים בנפרד מהפקודה; התוצאה true אם שורה אחת הושפעה.</summary>
+    /// <param name="statistic">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool Save(PlayerStatisticDto statistic)
     {
         using var connection = database.OpenConnection();
         using var command = connection.CreateCommand();
+        // ההחלטה בין INSERT ל־UPDATE נשענת על מזהה הרשומה שנבחרה במסך.
         command.CommandText = statistic.StatisticId == 0
             ? "INSERT INTO [PlayerStatistics] " +
               "([PlayerId], [MatchId], [Goals], [Assists], [MinutesPlayed], [Rating]) " +
@@ -61,9 +72,13 @@ public sealed class AccessPlayerStatisticRepository(AccessDatabase database)
             command.Parameters.Add("@StatisticId", OleDbType.Integer).Value = statistic.StatisticId;
         }
 
+        // התשובה מציינת אם Access שינה שורה אחת.
         return command.ExecuteNonQuery() == 1;
     }
 
+    /// <summary>מוחקת רשומת PlayerStatistics לפי מזהה ומחזירה true אם שורה אחת נמחקה. אם היא לא נמצאה, מחזירה false לשירות.</summary>
+    /// <param name="statisticId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
+    /// <returns>true או false לפי הצלחת הבדיקה או השינוי.</returns>
     public bool Delete(int statisticId)
     {
         using var connection = database.OpenConnection();
