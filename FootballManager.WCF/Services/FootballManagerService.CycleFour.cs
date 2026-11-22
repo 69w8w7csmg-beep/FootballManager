@@ -188,8 +188,7 @@ public sealed partial class FootballManagerService
             explanation = "רק מנהל קבוצות רשאי לנהל העברות וסטטיסטיקות.";
         }
 
-        OperationContext.Current.OutgoingMessageProperties[HttpResponseMessageProperty.Name] =
-            new HttpResponseMessageProperty { StatusCode = status };
+        SetAccessDenial(status);
         return $"{(int)status} {status} · {explanation}";
     }
 }

@@ -1,4 +1,6 @@
 using CoreWCF;
+using CoreWCF.Channels;
+using System.Net;
 using Microsoft.AspNetCore.Identity;
 using FootballManager.Contracts;
 using FootballManager.WCF.Contracts;
@@ -18,6 +20,8 @@ public sealed partial class FootballManagerService : IFootballManagerService
     private readonly AccessPlayerStatisticRepository _statistics;
     private readonly PasswordHasher<UserRecord> _passwordHasher;
     private readonly LoginSessionStore _sessions;
+    // ב־REST קוראים לשירות ישירות. המתאם משתמש בקוד של מופע הבקשה כדי להחזיר אותה חסימה גם באתר.
+    internal HttpStatusCode ResponseStatus { get; private set; } = HttpStatusCode.OK;
 
     /// <summary>מבצעת את שלב המערכת Football Manager Service באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
     /// <param name="database">ערך מסוג AccessDatabase שהפעולה צריכה כדי לבצע את תפקידה.</param>
@@ -36,7 +40,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
         AccessTransferRepository transfers,
         AccessPlayerStatisticRepository statistics,
         PasswordHasher<UserRecord> passwordHasher,
-        LoginSessionStore sessions)
+        LoginSessionStore sessions,
+        PlayerAnalysisProvider playerAnalysis,
+        GeminiChatProvider geminiChat,
+        AiChatHistoryStore chatHistory)
     {
         _database = database;
         _users = users;
@@ -46,6 +53,9 @@ public sealed partial class FootballManagerService : IFootballManagerService
         _statistics = statistics;
         _passwordHasher = passwordHasher;
         _sessions = sessions;
+        _playerAnalysis = playerAnalysis;
+        _geminiChat = geminiChat;
+        _chatHistory = chatHistory;
     }
 
     /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Service Status ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Map Football Manager Web Api, Get Service Status Async.</summary>
@@ -139,15 +149,19 @@ public sealed partial class FootballManagerService : IFootballManagerService
     /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public LoginResponseDto GetCurrentSession(string sessionToken)
     {
-        return TryGetAuthenticatedUser(sessionToken, out var user)
-            ? new LoginResponseDto
-            {
-                Succeeded = true,
-                Username = user.Username,
-                Role = user.Role,
-                Message = "החיבור פעיל."
-            }
-            : new LoginResponseDto { Succeeded = false, Message = "פג תוקף החיבור. יש להתחבר מחדש." };
+        if (!TryGetAuthenticatedUser(sessionToken, out var user))
+        {
+            SetAccessDenial(HttpStatusCode.Unauthorized);
+            return new LoginResponseDto { Message = "פג תוקף החיבור. יש להתחבר מחדש." };
+        }
+
+        return new LoginResponseDto
+        {
+            Succeeded = true,
+            Username = user.Username,
+            Role = user.Role,
+            Message = "החיבור פעיל."
+        };
     }
 
     /// <summary>מסיימת את ההפעלה המחוברת ומנקה את מצב המשתמש בצד הלקוח. נקראת בקוד מתוך Map Football Manager Web Api, Logout Async.</summary>
@@ -393,7 +407,7 @@ public sealed partial class FootballManagerService : IFootballManagerService
     /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public OperationResultDto AddFavorite(string sessionToken, int playerId)
     {
-        if (!TryGetUserWithRole(sessionToken, "Player", out _))
+        if (!TryGetUserWithRole(sessionToken, "Player", out var owner))
         {
             return Failure("נדרשת התחברות כשחקן.");
         }
@@ -405,7 +419,7 @@ public sealed partial class FootballManagerService : IFootballManagerService
 
         try
         {
-            _football.AddFavorite(_sessions.FindUserId(sessionToken)!.Value, playerId);
+            _football.AddFavorite(owner.UserId, playerId);
             return Success("השחקן נוסף למועדפים.");
         }
         catch
@@ -596,10 +610,26 @@ public sealed partial class FootballManagerService : IFootballManagerService
     {
         if (!TryGetAuthenticatedUser(token, out user))
         {
+            SetAccessDenial(HttpStatusCode.Unauthorized);
             return false;
         }
 
-        return user.Role == role;
+        if (user.Role == role) return true;
+
+        SetAccessDenial(HttpStatusCode.Forbidden);
+        return false;
+    }
+
+    /// <summary>קובעת את סטטוס HTTP של דחיית הבקשה. ב־SOAP הקוד נכתב בתגובה היוצאת, ובאתר מתאם REST קורא אותו ממופע השירות של הבקשה.</summary>
+    /// <param name="status">401 לחיבור חסר או לא תקף, 403 למשתמש פעיל שחסרה לו הרשאה.</param>
+    private void SetAccessDenial(HttpStatusCode status)
+    {
+        ResponseStatus = status;
+        if (OperationContext.Current is { } context)
+        {
+            context.OutgoingMessageProperties[HttpResponseMessageProperty.Name] =
+                new HttpResponseMessageProperty { StatusCode = status };
+        }
     }
 
     /// <summary>מאתרת מזהה משתמש מתוך LoginSessionStore, טוענת את הרשומה מ־Access ודוחה Session שפג או חשבון חסום. מחזירה UserRecord פעיל או false, ומשותפת לבדיקות התפקידים.</summary>

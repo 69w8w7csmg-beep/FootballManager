@@ -47,6 +47,16 @@ public sealed class PlayersResponseDto
     [DataMember(Order = 3)] public List<PlayerDto> Players { get; set; } = [];
 }
 
+/// <summary>תשובת ניתוח AI לשחקן. השירות מחזיר את הודעת המצב ואת הניתוח בלי לשמור אותו במסד.</summary>
+[DataContract(Namespace = "urn:footballmanager:contracts")]
+public sealed class PlayerAnalysisResponseDto
+{
+    [DataMember(Order = 1)] public bool Succeeded { get; set; }
+    [DataMember(Order = 2)] public string Message { get; set; } = string.Empty;
+    [DataMember(Order = 3)] public string PlayerName { get; set; } = string.Empty;
+    [DataMember(Order = 4)] public string Analysis { get; set; } = string.Empty;
+}
+
 /// <summary>מעטפת תשובת שירות הכוללת הודעת מצב ורשימת קבוצות מסוג TeamDto.</summary>
 [DataContract(Namespace = "urn:footballmanager:contracts")]
 public sealed class TeamsResponseDto

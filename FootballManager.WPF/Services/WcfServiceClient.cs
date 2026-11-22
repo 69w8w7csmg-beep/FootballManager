@@ -106,7 +106,8 @@ public sealed class WcfServiceClient
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<ManagedUsersResponseDto> GetManagedUsersAsync(string sessionToken) =>
-        Task.Run(() => Invoke(service => service.GetManagedUsers(sessionToken)));
+        InvokeRoleProtectedAsync(service => service.GetManagedUsers(sessionToken),
+            message => new ManagedUsersResponseDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Create Managed User Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Create Managed User_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
@@ -115,14 +116,16 @@ public sealed class WcfServiceClient
     public Task<OperationResultDto> CreateManagedUserAsync(
         string sessionToken,
         CreateManagedUserRequestDto request) =>
-        Task.Run(() => Invoke(service => service.CreateManagedUser(sessionToken, request)));
+        InvokeRoleProtectedAsync(service => service.CreateManagedUser(sessionToken, request),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Delete Managed User Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Delete Managed User_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="userId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> DeleteManagedUserAsync(string sessionToken, int userId) =>
-        Task.Run(() => Invoke(service => service.DeleteManagedUser(sessionToken, userId)));
+        InvokeRoleProtectedAsync(service => service.DeleteManagedUser(sessionToken, userId),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Update User Role Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Change Role_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
@@ -130,7 +133,8 @@ public sealed class WcfServiceClient
     /// <param name="role">סוג המשתמש או התפקיד המבוקש; השרת מאמת הרשאות לפי החשבון.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> UpdateUserRoleAsync(string sessionToken, int userId, string role) =>
-        Task.Run(() => Invoke(service => service.UpdateUserRole(sessionToken, userId, role)));
+        InvokeRoleProtectedAsync(service => service.UpdateUserRole(sessionToken, userId, role),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Set User Blocked Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Block User_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
@@ -138,7 +142,8 @@ public sealed class WcfServiceClient
     /// <param name="isBlocked">דגל המציין אם המצב או הפעולה מופעלים.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> SetUserBlockedAsync(string sessionToken, int userId, bool isBlocked) =>
-        Task.Run(() => Invoke(service => service.SetUserBlocked(sessionToken, userId, isBlocked)));
+        InvokeRoleProtectedAsync(service => service.SetUserBlocked(sessionToken, userId, isBlocked),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Players Async ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Initialize Async, Refresh Public Players Async.</summary>
     /// <param name="searchText">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
@@ -152,6 +157,19 @@ public sealed class WcfServiceClient
         int minimumRating = 0,
         int maximumRating = 100) =>
         Task.Run(() => Invoke(service => service.GetPlayers(searchText, position, minimumRating, maximumRating)));
+
+    /// <summary>שולח בקשת ניתוח לשירות WCF. אסימון המשתמש נבדק בהרשאות השרת; 401 ו־403 מוחזרים כתשובת מצב למסך.</summary>
+    /// <param name="sessionToken">אסימון ההתחברות שהתקבל מהשרת.</param>
+    /// <param name="playerId">מזהה השחקן הציבורי לניתוח.</param>
+    /// <returns>משימה שמחזירה את תשובת הניתוח מהשרת.</returns>
+    public Task<PlayerAnalysisResponseDto> AnalyzePlayerAsync(string sessionToken, int playerId) =>
+        InvokeRoleProtectedAsync(service => service.AnalyzePlayer(sessionToken, playerId),
+            message => new PlayerAnalysisResponseDto { Message = message });
+
+    /// <summary>מעבירה שאלה או איפוס דרך חוזה WCF ומחזירה תשובת שרת או הודעת חסימה.</summary>
+    public Task<AiChatResponseDto> ChatAsync(AiChatRequestDto request) =>
+        InvokeRoleProtectedAsync(service => service.Chat(request),
+            message => new AiChatResponseDto { Message = message });
 
     /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Teams Async ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Initialize Async, Refresh Public Teams Async.</summary>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
@@ -168,49 +186,56 @@ public sealed class WcfServiceClient
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<PlayersResponseDto> GetMyFavoritesAsync(string sessionToken) =>
-        Task.Run(() => Invoke(service => service.GetMyFavorites(sessionToken)));
+        InvokeRoleProtectedAsync(service => service.GetMyFavorites(sessionToken),
+            message => new PlayersResponseDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Add Favorite Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Add Favorite_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> AddFavoriteAsync(string sessionToken, int playerId) =>
-        Task.Run(() => Invoke(service => service.AddFavorite(sessionToken, playerId)));
+        InvokeRoleProtectedAsync(service => service.AddFavorite(sessionToken, playerId),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Remove Favorite Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Remove Favorite_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> RemoveFavoriteAsync(string sessionToken, int playerId) =>
-        Task.Run(() => Invoke(service => service.RemoveFavorite(sessionToken, playerId)));
+        InvokeRoleProtectedAsync(service => service.RemoveFavorite(sessionToken, playerId),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Save Player Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Save Player_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="player">נתוני השחקן או מזהה השחקן.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> SavePlayerAsync(string sessionToken, PlayerDto player) =>
-        Task.Run(() => Invoke(service => service.SavePlayer(sessionToken, player)));
+        InvokeRoleProtectedAsync(service => service.SavePlayer(sessionToken, player),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Delete Player Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Delete Player_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> DeletePlayerAsync(string sessionToken, int playerId) =>
-        Task.Run(() => Invoke(service => service.DeletePlayer(sessionToken, playerId)));
+        InvokeRoleProtectedAsync(service => service.DeletePlayer(sessionToken, playerId),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Save Team Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Save Team_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="team">נתוני הקבוצה או מזהה הקבוצה.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> SaveTeamAsync(string sessionToken, TeamDto team) =>
-        Task.Run(() => Invoke(service => service.SaveTeam(sessionToken, team)));
+        InvokeRoleProtectedAsync(service => service.SaveTeam(sessionToken, team),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Delete Team Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Delete Team_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="teamId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> DeleteTeamAsync(string sessionToken, int teamId) =>
-        Task.Run(() => Invoke(service => service.DeleteTeam(sessionToken, teamId)));
+        InvokeRoleProtectedAsync(service => service.DeleteTeam(sessionToken, teamId),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Add Player To Team Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Add Roster Player_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
@@ -218,7 +243,8 @@ public sealed class WcfServiceClient
     /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> AddPlayerToTeamAsync(string sessionToken, int teamId, int playerId) =>
-        Task.Run(() => Invoke(service => service.AddPlayerToTeam(sessionToken, teamId, playerId)));
+        InvokeRoleProtectedAsync(service => service.AddPlayerToTeam(sessionToken, teamId, playerId),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את פעולת הנתונים Remove Player From Team Async. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. נקראת בקוד מתוך Remove Roster Player_Click.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
@@ -226,7 +252,8 @@ public sealed class WcfServiceClient
     /// <param name="playerId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     public Task<OperationResultDto> RemovePlayerFromTeamAsync(string sessionToken, int teamId, int playerId) =>
-        Task.Run(() => Invoke(service => service.RemovePlayerFromTeam(sessionToken, teamId, playerId)));
+        InvokeRoleProtectedAsync(service => service.RemovePlayerFromTeam(sessionToken, teamId, playerId),
+            message => new OperationResultDto { Message = message });
 
     /// <summary>מבצעת את שלב המערכת Invoke Role Protected Async באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Get Transfers Async, Save Transfer Async.</summary>
     /// <param name="operation">ערך מסוג Func&lt;IFootballManagerService, T&gt; שהפעולה צריכה כדי לבצע את תפקידה.</param>

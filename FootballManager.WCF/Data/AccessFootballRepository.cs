@@ -60,6 +60,20 @@ public sealed class AccessFootballRepository
         return players;
     }
 
+    /// <summary>שירות הסקאוט טוען את הפרופיל העדכני לפי המזהה שנבחר במסך. פרמטר OleDb קושר את המזהה לשאילתה.</summary>
+    /// <param name="playerId">המפתח הראשי בטבלת השחקנים.</param>
+    /// <returns>הפרופיל הציבורי או null אם השחקן נמחק.</returns>
+    public PlayerDto? FindPlayer(int playerId)
+    {
+        using var connection = _database.OpenConnection();
+        using var command = new OleDbCommand(
+            "SELECT [PlayerId], [FirstName], [LastName], [Age], [Position], [Rating], " +
+            "[Speed], [Shooting], [Passing], [Defense] FROM [Players] WHERE [PlayerId] = ?", connection);
+        command.Parameters.Add("@PlayerId", OleDbType.Integer).Value = playerId;
+        using var reader = command.ExecuteReader();
+        return reader.Read() ? ReadPlayer(reader) : null;
+    }
+
     /// <summary>מבצעת את שלב המערכת Seed Demo Content באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך אתחול.</summary>
     public void SeedDemoContent()
     {

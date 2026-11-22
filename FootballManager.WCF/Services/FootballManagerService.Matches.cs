@@ -94,8 +94,7 @@ public sealed partial class FootballManagerService
             explanation = "לחשבון זה אין הרשאה לפעולה.";
         }
 
-        OperationContext.Current.OutgoingMessageProperties[HttpResponseMessageProperty.Name] =
-            new HttpResponseMessageProperty { StatusCode = status };
+        SetAccessDenial(status);
         return $"{(int)status} {status} · {explanation}";
     }
 }

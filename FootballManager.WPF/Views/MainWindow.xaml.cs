@@ -69,6 +69,22 @@ public partial class MainWindow : Window
         new Cycle4Window(_serviceClient, _session, RememberSavedTransfer) { Owner = this }.ShowDialog();
     }
 
+    /// <summary>פותח את כלי הסקאוט אחרי התחברות. כל משתמש רשאי להגיע למסך לצורך הדגמת בדיקת ההרשאה; רק השרת מרשה בפועל את הפעולה ל־Player.</summary>
+    /// <param name="sender">כפתור סקאוט ה־AI בדשבורד.</param>
+    /// <param name="e">פרטי אירוע הלחיצה.</param>
+    private void OpenAiScout_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_sessionToken)) return;
+        new AiScoutWindow(_serviceClient, _session) { Owner = this }.ShowDialog();
+    }
+
+    /// <summary>פותחת את חלון הצ'אט. השרת יבדוק את התפקיד בכל בקשה.</summary>
+    private void OpenAiChat_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_sessionToken)) return;
+        new AiChatWindow(_serviceClient, _session) { Owner = this }.ShowDialog();
+    }
+
     /// <summary>מבצעת את שלב המערכת Remember Saved Transfer באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
     /// <param name="transfer">נתוני העברת השחקן שעליהם פועלת הפעולה.</param>
     private void RememberSavedTransfer(TransferDto transfer)
@@ -930,6 +946,9 @@ public partial class MainWindow : Window
             OpenMatchesButton.Visibility = _currentRole is "Player" or "Manager" ? Visibility.Visible : Visibility.Collapsed;
             // זו התאמת תצוגה לנוחות המשתמש; WCF עדיין אוכף את התפקיד בכל מתודת C4.
             OpenCycle4Button.Visibility = _currentRole == "Manager" ? Visibility.Visible : Visibility.Collapsed;
+            // כפתור הסקאוט גלוי למשתמשים מחוברים כדי להדגים שגם תפקיד לא מורשה נחסם ב־WCF.
+            AiScoutButton.Visibility = Visibility.Visible;
+            AiChatButton.Visibility = Visibility.Visible;
             PlayerTransferAttemptButton.Visibility = _currentRole == "Player" && _lastSavedTransfer is not null
                 ? Visibility.Visible : Visibility.Collapsed;
             PlayerTransferStatus.Text = string.Empty;
@@ -977,6 +996,8 @@ public partial class MainWindow : Window
         _session.Clear();
         OpenMatchesButton.Visibility = Visibility.Collapsed;
         OpenCycle4Button.Visibility = Visibility.Collapsed;
+        AiScoutButton.Visibility = Visibility.Collapsed;
+        AiChatButton.Visibility = Visibility.Collapsed;
         PlayerTransferAttemptButton.Visibility = Visibility.Collapsed;
         PlayerTransferStatus.Visibility = Visibility.Collapsed;
         _cachedManagedUsers = [];

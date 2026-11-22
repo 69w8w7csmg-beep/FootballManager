@@ -137,6 +137,17 @@ public interface IFootballManagerService
     [OperationContract(Name = "GetPlayers")]
     PlayersResponseDto GetPlayers(string searchText, string position, int minimumRating, int maximumRating);
 
+    /// <summary>מבקשת מהשרת ניתוח AI לשחקן לפי מזהה. השרת מזהה את החשבון מתוך האסימון ומרשה את הפעולה ל־Player בלבד.</summary>
+    /// <param name="sessionToken">אסימון ההתחברות שהתקבל מהשרת.</param>
+    /// <param name="playerId">מזהה השחקן הציבורי לניתוח.</param>
+    /// <returns>תוצאת הניתוח או הודעת כשל בטוחה להצגה.</returns>
+    [OperationContract(Name = "AnalyzePlayer")]
+    Task<PlayerAnalysisResponseDto> AnalyzePlayerAsync(string sessionToken, int playerId);
+
+    /// <summary>שולחת שאלה או איפוס צ'אט לשרת; השרת מאמת Session ותפקיד ומחזיק היסטוריה למשתמש.</summary>
+    [OperationContract(Name = "Chat")]
+    Task<AiChatResponseDto> ChatAsync(AiChatRequestDto request);
+
     /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Teams ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Seed Demo Content, Get Teams.</summary>
     /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     [OperationContract(Name = "GetTeams")]

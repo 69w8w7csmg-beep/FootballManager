@@ -645,6 +645,11 @@
                             <Button x:Name="PlayerTransferAttemptButton" Content="בדיקת הרשאה להעברה"
                                     Style="{StaticResource SecondaryButtonStyle}" Padding="20,10" Margin="8,0,0,0"
                                     Visibility="Collapsed" Click="PlayerTransferAttempt_Click"/>
+                            <Button x:Name="AiScoutButton" Content="סקאוט AI (בדיקת הרשאה)"
+                                    Style="{StaticResource SecondaryButtonStyle}" Padding="20,10" Margin="8,0,0,0"
+                                    Visibility="Collapsed" Click="OpenAiScout_Click"/>
+                            <Button x:Name="AiChatButton" Content="צ'אט בינה" Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="20,10" Margin="8,0,0,0" Visibility="Collapsed" Click="OpenAiChat_Click"/>
                         </StackPanel>
                         <TextBlock x:Name="PlayerTransferStatus" Foreground="#D5EFEB" TextWrapping="Wrap"
                                    Visibility="Collapsed" Margin="0,8,0,0" AutomationProperties.LiveSetting="Polite"/>

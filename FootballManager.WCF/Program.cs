@@ -59,6 +59,15 @@ builder.Services.AddSingleton<AccessTransferRepository>();
 builder.Services.AddSingleton<AccessPlayerStatisticRepository>();
 builder.Services.AddSingleton<PasswordHasher<UserRecord>>();
 builder.Services.AddSingleton<LoginSessionStore>();
+builder.Services.AddSingleton<AiChatHistoryStore>();
+builder.Services.AddHttpClient<GeminiChatProvider>(client => client.Timeout = TimeSpan.FromSeconds(25));
+builder.Services.AddHttpClient<OpenAiPlayerAnalysisProvider>(client =>
+{
+    // זמן קצוב קצר משאיר את חלון הלקוח זמין גם כששירות AI אינו עונה.
+    client.Timeout = TimeSpan.FromSeconds(25);
+});
+builder.Services.AddTransient<PlayerAnalysisProvider>(services =>
+    new GeminiPlayerAnalysisProvider(services.GetRequiredService<GeminiChatProvider>()));
 builder.Services.AddTransient<FootballManagerService>();
 
 var app = builder.Build();
