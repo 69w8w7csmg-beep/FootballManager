@@ -41,6 +41,24 @@ public sealed class GeminiChatProvider
             "השב באובייקט JSON עם answer (מחרוזת) ו־favoritePlayerId (מספר שלם). " +
             "אל תטען ששמרת במערכת; השרת יחליט אם השמירה הצליחה. " +
             "רשימת שחקנים: " + catalog + ". מזהי מועדפים נוכחיים: " + favoriteIds;
+        return await SendPromptAsync(system, question, history, cancellationToken);
+    }
+
+    /// <summary>מבקשת ניתוח הרכב מנתונים שהשרת אסף. התשובה היא המלצה בלבד.</summary>
+    public async Task<string> AskLineupAsync(string context, CancellationToken cancellationToken)
+    {
+        const string system = "אתה עוזר למאמן כדורגל. כתוב בעברית קצרה. " +
+            "נתוני הבקשה הם מקור העובדות היחיד. אל תמציא שחקנים, הרכב יריבה או הישגים. " +
+            "אם יש ראיות מתאימות הצע חילוף אחד מתוך הספסל בלבד והסבר למה. " +
+            "אם אין מספיק נתונים, ציין מה חסר ואת השיקול הטקטי בלבד. " +
+            "השב ב־JSON עם answer כמחרוזת ו־favoritePlayerId=0.";
+        return (await SendPromptAsync(system, context, [], cancellationToken)).Answer;
+    }
+
+    /// <summary>שולחת בקשה לספק הבינה שהוגדר ומפרשת את התשובה המובנית.</summary>
+    private async Task<GeminiChatAnswer> SendPromptAsync(string system, string question,
+        IReadOnlyList<AiChatTurn> history, CancellationToken cancellationToken)
+    {
         if (!string.IsNullOrWhiteSpace(_configuration["LocalAi:Endpoint"]))
             return await AskLocalAsync(system, question, history, cancellationToken);
 

@@ -1,0 +1,75 @@
+<!doctype html>
+<!--
+מטרה: מסך ליגות, משחקים וסגלים ציבוריים שמגיעים מ־API-Football.
+מי משתמש: הגולש באתר FootballManager.
+פעולות: בחירת ליגה, עונה, קבוצה, משחק ומערך להמחשה.
+תלויות: football.js, גיליון הסגנונות של האתר ונתיבי FootballFeedEndpoints.
+-->
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FootballManager | ליגות והרכבים</title>
+  <link rel="stylesheet" href="/content.css">
+  <link rel="stylesheet" href="/football.css">
+  <script defer src="/football.js"></script>
+  <script defer src="/lineup-planner.js"></script>
+</head>
+<body>
+  <header><a href="/">FootballManager</a><a href="/content.html">תוכן המערכת</a></header>
+  <main>
+    <h1>ליגות והרכבים</h1>
+    <p>משחקים, קבוצות וסגלים ממקור הנתונים <a href="https://www.api-football.com/">API-Football</a>.</p>
+    <form id="filters">
+      <label>ליגה<select id="league"></select></label>
+      <label>שנת תחילת העונה<input type="number" id="season" min="2000" required></label>
+      <button class="primary" id="load" disabled>טען משחקים וקבוצות</button>
+    </form>
+    <p role="status" id="message"></p>
+    <div class="football-columns">
+      <section class="record">
+        <h2>משחקים</h2>
+        <label>בחר משחק<select id="match" disabled></select></label>
+        <p id="match-score"></p>
+        <button type="button" id="lineups" disabled>הרכבים שפורסמו</button>
+        <p role="status" id="lineup-message"></p>
+        <div id="match-lineups"></div>
+      </section>
+      <section class="record">
+        <h2>קבוצות וסגלים</h2>
+        <label>בחר קבוצה<select id="team" disabled></select></label>
+        <button type="button" id="squad" disabled>הצג סגל</button>
+        <p role="status" id="squad-message"></p>
+        <ul id="players"></ul>
+      </section>
+    </div>
+    <section class="record formation-card">
+      <h2>תצוגת מערך</h2>
+      <label>מערך להמחשה<select id="formation"></select></label>
+      <div id="pitch" aria-label="מיקום העמדות על המגרש"></div>
+    </section>
+    <section class="record planner">
+      <h2>תכנון הרכב למאמן</h2>
+      <p id="plan-account">מתחברים כמאמן ב־FootballManager, בוחרים משחק ובונים תוכנית אישית.</p>
+      <div id="plan-controls" hidden>
+        <label>קבוצה במשחק <select id="plan-team" disabled></select></label>
+        <button type="button" id="plan-open" disabled>פתח תוכנית</button>
+      </div>
+      <p role="status" id="plan-status"></p>
+      <div id="plan-editor" hidden>
+        <label>מערך <select id="plan-formation"></select></label>
+        <h3>11 פותחים</h3><div id="plan-starters" class="plan-grid"></div>
+        <h3>מחליפים</h3><div id="plan-bench" class="plan-grid"></div>
+        <div class="plan-grid substitution">
+          <label>מוציאים <select id="swap-out"></select></label>
+          <label>מכניסים <select id="swap-in"></select></label>
+          <button type="button" id="plan-swap">בצע חילוף בתוכנית</button>
+        </div>
+        <button type="button" class="primary" id="plan-save">שמור תוכנית</button>
+        <button type="button" id="plan-advice">בקש המלצת AI</button>
+        <p role="status" id="plan-answer"></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

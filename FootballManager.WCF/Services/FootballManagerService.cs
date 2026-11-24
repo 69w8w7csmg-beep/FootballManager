@@ -347,6 +347,7 @@ public sealed partial class FootballManagerService : IFootballManagerService
     /// <returns>תוצאת שליפה ורשימת שחקנים כאשר הבקשה הצליחה.</returns>
     public PlayersResponseDto GetPlayers(string searchText, string position, int minimumRating, int maximumRating)
     {
+        // הרשימה ציבורית. בדיקת טווח הדירוג נשארת בשרת כדי שכל שלושת הלקוחות יקבלו אותה תשובה.
         if (minimumRating < 0 || maximumRating > 100 || minimumRating > maximumRating)
         {
             return new PlayersResponseDto { Succeeded = false, Message = "טווח הדירוג אינו תקין." };
@@ -623,6 +624,10 @@ public sealed partial class FootballManagerService : IFootballManagerService
         SetAccessDenial(HttpStatusCode.Forbidden);
         return false;
     }
+
+    /// <summary>מזהה את בעל תוכנית ההרכב לפי החשבון המאומת ב־Access.</summary>
+    internal int? GetLineupManagerId(string token) =>
+        TryGetUserWithRole(token, "Manager", out var user) ? user.UserId : null;
 
     /// <summary>קובעת את סטטוס HTTP של דחיית הבקשה. ב־SOAP הקוד נכתב בתגובה היוצאת, ובאתר מתאם REST קורא אותו ממופע השירות של הבקשה.</summary>
     /// <param name="status">401 לחיבור חסר או לא תקף, 403 למשתמש פעיל שחסרה לו הרשאה.</param>
