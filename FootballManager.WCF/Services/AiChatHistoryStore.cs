@@ -1,3 +1,7 @@
+// תפקיד הקובץ: שומר תורי שיחה לפי מזהה משתמש.
+// שכבה: שירותים בשרת WCF.
+// משתמשים: שירות הצ'אט.
+// קשר בפרויקט: מפריד את ההיסטוריה של כל חשבון ושומר אותה בזיכרון.
 using System.Collections.Concurrent;
 
 namespace FootballManager.WCF.Services;

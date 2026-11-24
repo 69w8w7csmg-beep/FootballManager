@@ -1,3 +1,9 @@
+<!--
+תפקיד הקובץ: מגדיר את מבנה מסכי התוכן.
+שכבה: לקוח האתר.
+משתמשים: אורח, שחקן, מאמן ואדמין.
+קשר בפרויקט: טוען את קוד הלקוח ואת הסגנון של העמוד.
+-->
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
@@ -11,8 +17,9 @@
   <header><a href="/">FootballManager</a><span id="account">בודק התחברות…</span><a href="/">דף הבית וכניסה</a></header>
   <main>
     <h1>תוכן המערכת</h1>
-    <p id="message" role="status">טוען נתונים…</p>
     <nav id="tabs" aria-label="יכולות תוכן"></nav>
+    <h2 id="section-title">שחקנים</h2>
+    <p id="message" role="status" aria-atomic="true">טוען נתונים…</p>
     <section id="records" aria-label="רשומות"></section>
     <section id="editor" hidden><h2 id="editor-title">עריכת רשומה</h2><form id="record-form"></form></section>
   </main>

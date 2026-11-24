@@ -1,3 +1,7 @@
+// תפקיד הקובץ: בונה בקשת ניתוח מנתוני השחקן.
+// שכבה: שירותי בינה בשרת WCF.
+// משתמשים: פעולת ניתוח שחקן.
+// קשר בפרויקט: מפעיל את אותו מתאם ספק שמשמש לצ'אט.
 using FootballManager.Contracts;
 
 namespace FootballManager.WCF.Services;

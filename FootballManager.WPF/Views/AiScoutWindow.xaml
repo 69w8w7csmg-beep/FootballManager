@@ -1,3 +1,9 @@
+<!--
+תפקיד הקובץ: מגדיר רשימת שחקנים ותצוגת ניתוח.
+שכבה: תצוגה בלקוח WPF.
+משתמשים: משתמשים בחלון הסקאוט.
+קשר בפרויקט: מציג נתונים מתוך AiScoutViewModel.
+-->
 <Window x:Class="FootballManager.WPF.Views.AiScoutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

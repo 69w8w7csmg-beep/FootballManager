@@ -1,13 +1,15 @@
+// תפקיד הקובץ: מנהל בחירת שחקן והצגת ניתוח.
+// שכבה: ViewModel של לקוח WPF.
+// משתמשים: חלון הסקאוט.
+// קשר בפרויקט: מעביר בקשת ניתוח דרך WcfServiceClient.
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using FootballManager.Contracts;
 using FootballManager.WPF.Services;
 
 namespace FootballManager.WPF.ViewModels;
 
 /// <summary>ViewModel לחלון הסקאוט. הוא טוען שחקנים ומבקש ניתוח דרך WcfServiceClient, בלי חיבור למסד Access.</summary>
-public sealed class AiScoutViewModel : INotifyPropertyChanged
+public sealed class AiScoutViewModel : ViewModelBase
 {
     private readonly WcfServiceClient _serviceClient;
     private readonly AccountSessionViewModel _session;
@@ -115,11 +117,5 @@ public sealed class AiScoutViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>מודיעה ל־WPF לרענן Binding לאחר שינוי ערך.</summary>
-    /// <param name="propertyName">שם המאפיין שהשתנה.</param>
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-    /// <summary>אירוע Binding של WPF לשינויים במאפייני ה־ViewModel.</summary>
-    public event PropertyChangedEventHandler? PropertyChanged;
 }

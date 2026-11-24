@@ -1,14 +1,13 @@
 // פקודות ותצוגת משחקים ב־WPF. הגישה לנתונים מתבצעת דרך לקוח שירות WCF.
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using System.Runtime.CompilerServices;
 using FootballManager.Contracts;
 using FootballManager.WPF.Services;
 
 namespace FootballManager.WPF.ViewModels;
 
 /// <summary>ViewModel של מסך משחקי C3. הוא מנהל חיפוש, בחירה ופקודות CRUD ומעביר את פעולות המשחקים ל־WCF.</summary>
-public sealed class MatchesViewModel : INotifyPropertyChanged
+public sealed class MatchesViewModel : ViewModelBase
 {
     private readonly WcfServiceClient _service;
     private readonly string _token;
@@ -21,7 +20,6 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
     private string _homeScore = "0", _awayScore = "0", _status = "";
     private bool _busy;
 
-    public event PropertyChangedEventHandler? PropertyChanged;
     public bool IsManager { get; }
     public bool IsPlayer { get; }
     public string AccountLabel { get; }
@@ -69,8 +67,8 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
         {
             SearchText = "";
             FilterDate = null;
-            Changed(nameof(SearchText));
-            Changed(nameof(FilterDate));
+            OnPropertyChanged(nameof(SearchText));
+            OnPropertyChanged(nameof(FilterDate));
             await LoadMatchesAsync(SelectedMatch?.MatchId);
         });
         New = Action(() =>
@@ -112,14 +110,14 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
     {
         if (_busy) return;
         _busy = true;
-        Changed(nameof(Ready));
+        OnPropertyChanged(nameof(Ready));
         CommandManager.InvalidateRequerySuggested();
         try { await operation(); }
         catch (Exception ex) { Status = $"הפעולה לא הושלמה. {ex.GetBaseException().Message}"; }
         finally
         {
             _busy = false;
-            Changed(nameof(Ready));
+            OnPropertyChanged(nameof(Ready));
             CommandManager.InvalidateRequerySuggested();
         }
     }
@@ -145,7 +143,7 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
         MatchDate = SelectedMatch?.MatchDate.Date ?? DateTime.Today;
         HomeScore = SelectedMatch?.HomeScore.ToString() ?? "0";
         AwayScore = SelectedMatch?.AwayScore.ToString() ?? "0";
-        Changed(nameof(EditorTitle));
+        OnPropertyChanged(nameof(EditorTitle));
         CommandManager.InvalidateRequerySuggested();
     }
 
@@ -206,12 +204,11 @@ public sealed class MatchesViewModel : INotifyPropertyChanged
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;
         field = value;
-        Changed(name);
+        OnPropertyChanged(name);
         return true;
     }
     /// <summary>מבצעת את שלב המערכת Changed באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. נקראת בקוד מתוך Run Async, Populate Transfer Editor.</summary>
     /// <param name="name">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
-    private void Changed(string name) => PropertyChanged?.Invoke(this, new(name));
 
     /// <summary>מימוש ICommand שמחבר פקודות מסך המשחקים לפעולות MatchesViewModel ובודק אם הפעולה זמינה.</summary>
     private sealed class MatchCommand(Func<Task> execute, Func<bool> canExecute) : ICommand

@@ -1,3 +1,9 @@
+<!--
+תפקיד הקובץ: מגדיר את תצוגת הצ'אט ואת כפתורי השליחה והאיפוס.
+שכבה: תצוגה בלקוח WPF.
+משתמשים: משתמשים בתפקיד שחקן.
+קשר בפרויקט: מציג את השיחה ואת ההודעה שחזרה מהשרת.
+-->
 <Window x:Class="FootballManager.WPF.Views.AiChatWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

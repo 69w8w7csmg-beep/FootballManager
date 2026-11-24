@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly AccountSessionViewModel _session = new();
     private readonly AuthenticationViewModel _authentication = new();
     private readonly GuestMatchesViewModel _guestMatches = new();
+    private readonly FavoritesViewModel _favorites;
     private TransferDto? _lastSavedTransfer;
     private IReadOnlyList<ManagedUserDto> _cachedManagedUsers = [];
     private bool _syncingLoginPassword;
@@ -28,6 +29,7 @@ public partial class MainWindow : Window
     /// <summary>מבצעת את שלב המערכת Main Window באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה.</summary>
     public MainWindow()
     {
+        _favorites = new FavoritesViewModel(_serviceClient);
         InitializeComponent();
         ApplyMatchFilter("All");
         UpdateLoginValidation();
@@ -272,8 +274,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        var result = await _serviceClient.AddFavoriteAsync(_sessionToken, player.PlayerId);
-        ContentMessageText.Text = result.Message;
+        var token = _sessionToken;
+        var result = await _favorites.AddAsync(token, player);
+        if (token == _sessionToken) ContentMessageText.Text = result.Message;
     }
 
     /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Remove Favorite_Click ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>
@@ -287,7 +290,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        var result = await _serviceClient.RemoveFavoriteAsync(_sessionToken, player.PlayerId);
+        var token = _sessionToken;
+        var result = await _favorites.RemoveAsync(token, player);
+        if (token != _sessionToken) return;
         ContentMessageText.Text = result.Message;
         if (result.Succeeded)
         {
@@ -304,16 +309,11 @@ public partial class MainWindow : Window
     /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
     private async Task RefreshFavoritesAsync()
     {
-        try
-        {
-            var result = await _serviceClient.GetMyFavoritesAsync(_sessionToken);
-            FavoritesList.ItemsSource = result.Succeeded ? result.Players : null;
-            ContentMessageText.Text = result.Message;
-        }
-        catch (Exception exception)
-        {
-            ContentMessageText.Text = $"לא הצלחתי לטעון את המועדפים. {exception.Message}";
-        }
+        var token = _sessionToken;
+        var result = await _favorites.LoadAsync(token);
+        if (token != _sessionToken || !ReferenceEquals(ContentTabs.SelectedItem, FavoritesTab)) return;
+        FavoritesList.ItemsSource = result.Succeeded ? result.Players : null;
+        ContentMessageText.Text = result.Message;
     }
 
     /// <summary>מופעלת בעקבות אירוע ממשק המשתמש Content Tabs_Selection Changed ומחברת בין פעולת המשתמש לבין הטיפול במסך.</summary>

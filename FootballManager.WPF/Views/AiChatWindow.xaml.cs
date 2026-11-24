@@ -1,3 +1,7 @@
+// תפקיד הקובץ: מטפל בשליחה ובאיפוס בחלון הצ'אט.
+// שכבה: תצוגה בלקוח WPF.
+// משתמשים: הכפתורים בחלון הצ'אט.
+// קשר בפרויקט: שולח את הבקשות דרך WcfServiceClient.
 using System.Windows;
 using FootballManager.Contracts;
 using FootballManager.WPF.Services;

@@ -1,3 +1,7 @@
+// תפקיד הקובץ: מחבר את חלון הסקאוט לפעולות התצוגה.
+// שכבה: תצוגה בלקוח WPF.
+// משתמשים: טעינת החלון וכפתור הניתוח.
+// קשר בפרויקט: מעביר את האירועים ל־AiScoutViewModel.
 using System.Windows;
 using FootballManager.WPF.Services;
 using FootballManager.WPF.ViewModels;

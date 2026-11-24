@@ -1,3 +1,7 @@
+// תפקיד הקובץ: מנהל את מסכי התוכן והטפסים בדפדפן.
+// שכבה: לקוח האתר.
+// משתמשים: אורח, שחקן, מאמן ואדמין.
+// קשר בפרויקט: קורא למתאם השירות ומציג את התגובה שקבע השרת.
 (() => {
   const $ = (selector) => document.querySelector(selector);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -9,26 +13,46 @@
     statistics: {title:'סטטיסטיקות',url:'/api/statistics',items:'statistics',id:'statisticId',write:'/api/statistics',fields:[['playerId','שחקן','number'],['matchId','משחק','number'],['goals','שערים','number'],['assists','בישולים','number'],['minutesPlayed','דקות','number'],['rating','דירוג','number']]},
     favorites: {title:'המועדפים שלי',url:'/api/favorites',items:'players',id:'playerId',fields:[]}
   };
-  let role = 'Guest', current = 'players', rows = [];
+  let role = 'Guest', current = 'players', rows = [], loadVersion = 0;
   async function api(url, options) {
     const response = await fetch(url,{credentials:'same-origin',...options});
     const data = await response.json().catch(()=>({}));
+    if (response.status === 401) throw new Error('401 Unauthorized · יש להתחבר כדי לבצע את הפעולה.');
+    if (response.status === 403) throw new Error('403 Forbidden · לחשבון הזה אין הרשאה לבצע את הפעולה.');
     if (!response.ok) throw new Error(`${response.status} · ${data.message || 'הפעולה נחסמה בשרת'}`);
     return data;
   }
-  function message(text) { $('#message').textContent = text; }
+  function message(text, failed = false) {
+    const status = $('#message');
+    status.textContent = text;
+    status.classList.toggle('error', failed);
+  }
   function renderTabs() {
-    const allowed = role === 'Manager' ? ['players','teams','matches','transfers','statistics'] : role === 'Player' ? ['players','teams','matches','favorites','transfers'] : role === 'Admin' ? ['players','teams','matches','transfers'] : ['players','teams','matches'];
-    $('#tabs').innerHTML = allowed.map(key=>`<button data-tab="${key}" class="${current===key?'active':''}">${schemas[key].title}</button>`).join('');
+    const tabs = ['players', 'teams', 'matches', 'transfers'];
+    if (role === 'Manager') tabs.push('statistics');
+    if (role === 'Player') tabs.push('favorites');
+    $('#tabs').innerHTML = tabs.map(key=>`<button data-tab="${key}" class="${current===key?'active':''}" aria-pressed="${current===key}">${schemas[key].title}</button>`).join('');
   }
   async function load(key) {
-    current=key; renderTabs(); $('#editor').hidden=true; message('טוען…');
+    const version = ++loadVersion;
+    const schema = schemas[key];
+    current = key;
+    rows = [];
+    renderTabs();
+    $('#section-title').textContent = schema.title;
+    $('#records').innerHTML = '';
+    $('#editor').hidden = true;
+    message('טוען…');
     try {
-      const schema=schemas[key], data=await api(schema.url); rows=data[schema.items]||[];
+      const data = await api(schema.url);
+      if (version !== loadVersion) return;
+      rows = data[schema.items] || [];
       $('#records').innerHTML=rows.length?rows.map((row,index)=>`<article class="record"><h2>${esc(row.name || [row.firstName,row.lastName].filter(Boolean).join(' ') || row.playerName || row.homeTeamName || schema.title)}</h2><p>${schema.fields.map(([field,label])=>`${label}: ${esc(row[field])}`).join(' · ')}</p><div class="actions">${role==='Manager'&&schema.write?`<button data-edit="${index}">ערוך</button><button data-delete="${index}">מחק</button>`:''}${key==='favorites'?`<button data-remove="${row.playerId}">הסר מהמועדפים</button>`:''}${key==='players'&&role==='Player'?`<button data-favorite="${row.playerId}">הוסף למועדפים</button>`:''}</div></article>`).join(''):'<p>אין רשומות להצגה.</p>';
       if (role==='Manager'&&schema.write) $('#records').insertAdjacentHTML('beforeend','<button class="primary" id="new-record">הוסף רשומה</button>');
       message(data.message||'הרשומות נטענו.');
-    } catch(error) {rows=[];$('#records').innerHTML='';message(error.message);}
+    } catch(error) {
+      if (version === loadVersion) message(error.message, true);
+    }
   }
   function editor(index=-1) {
     const schema=schemas[current], row=rows[index]||{};

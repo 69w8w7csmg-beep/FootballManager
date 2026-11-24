@@ -1,3 +1,7 @@
+// תפקיד הקובץ: מטפל בשאלה או באיפוס צ'אט עבור השחקן המחובר.
+// שכבה: לוגיקה עסקית בשרת WCF.
+// משתמשים: מסך הצ'אט בלקוח WPF דרך החוזה.
+// קשר בפרויקט: בודק בעלות, מנהל היסטוריה ופונה לספק ולמועדפים.
 using System.Data.OleDb;
 using System.Net;
 using FootballManager.Contracts;
@@ -47,10 +51,13 @@ public sealed partial class FootballManagerService
                 var result = await _geminiChat.AskAsync(question, history, players, favorites);
                 var addedId = 0;
                 // פלט המודל הוא הצעה בלבד. השרת מאמת מזהה קיים, בקשה מפורשת ובעלות לפני שינוי Access.
-                var mentionedPlayers = players.Where(p =>
-                    question.Contains($"{p.FirstName} {p.LastName}", StringComparison.OrdinalIgnoreCase)).ToList();
+                var mentionedPlayers = FindMentionedPlayers(players, question);
+                if (mentionedPlayers.Count == 0 && history.LastOrDefault(turn => !turn.IsUser) is { } previousReply)
+                    mentionedPlayers = FindMentionedPlayers(players, previousReply.Text);
+                var asksToAdd = question.Contains("מועדפ", StringComparison.OrdinalIgnoreCase) &&
+                    new[] { "הוסף", "תוסיף", "להוסיף", "הוסיפ" }.Any(word => question.Contains(word, StringComparison.Ordinal));
                 if (result.FavoritePlayerId > 0 &&
-                    question.Contains("מועדפ", StringComparison.OrdinalIgnoreCase) &&
+                    asksToAdd &&
                     mentionedPlayers.Count == 1 && mentionedPlayers[0].PlayerId == result.FavoritePlayerId &&
                     favorites.All(p => p.PlayerId != result.FavoritePlayerId))
                 {
@@ -63,7 +70,9 @@ public sealed partial class FootballManagerService
                 if (conversation.Turns.Count > 20) conversation.Turns.RemoveRange(0, conversation.Turns.Count - 20);
                 return new AiChatResponseDto
                 {
-                    Succeeded = true, Message = addedId > 0 ? "השחקן נוסף למועדפים." : "התשובה התקבלה.",
+                    Succeeded = true, Message = addedId > 0
+                        ? $"{mentionedPlayers[0].FirstName} {mentionedPlayers[0].LastName} נוסף למועדפים."
+                        : "התשובה התקבלה. רשימת המועדפים לא השתנתה.",
                     Answer = result.Answer, AddedFavoritePlayerId = addedId
                 };
             }
@@ -80,4 +89,8 @@ public sealed partial class FootballManagerService
         }
         finally { conversation.Gate.Release(); }
     }
+
+    private static List<PlayerDto> FindMentionedPlayers(IEnumerable<PlayerDto> players, string text) =>
+        players.Where(player => text.Contains($"{player.FirstName} {player.LastName}",
+            StringComparison.OrdinalIgnoreCase)).ToList();
 }
