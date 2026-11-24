@@ -1,3 +1,7 @@
+// מטרה: מחבר את אירועי WPF ל־ViewModels ולשירות.
+// מי משתמש: MainWindow.xaml.
+// פעולות: כניסה, הרשמה, ניווט, מועדפים ותוכן לפי תפקיד.
+// תלויות: AuthenticationViewModel, FavoritesViewModel ו־WcfServiceClient.
 // טיפול בתצוגה ובאירועי החלון הראשי. בדיקות טפסי החשבון נמצאות ב־ViewModel.
 using System.Windows;
 using System.Windows.Controls;

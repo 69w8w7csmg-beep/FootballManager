@@ -1,3 +1,7 @@
+// מטרה: קובע היכן WPF מחפש משאבי ערכת נושא.
+// מי משתמש: מנגנון המשאבים של WPF.
+// פעולות: מאפיין ThemeInfo.
+// תלויות: System.Windows.
 using System.Windows;
 
 [assembly: ThemeInfo(

@@ -1,3 +1,7 @@
+// מטרה: קורא ושומר שחקנים, קבוצות, סגלים ומועדפים בסבב 2.
+// מי משתמש: FootballManagerService ופקודת SeedDemoContent.
+// פעולות: GetPlayers, GetTeams, GetFavorites ופעולות השמירה.
+// תלויות: AccessDatabase ו־OleDb.
 // גישה לנתוני הכדורגל ויצירת נתוני הדגמה עקביים למסכי WPF ולמסד Access.
 using System.Data.OleDb;
 using FootballManager.Contracts;

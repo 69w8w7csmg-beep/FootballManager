@@ -1,7 +1,7 @@
-// תפקיד הקובץ: שמירת קוד HTTP המקורי כדי להציג 401 או 403 בלקוח.
-// שכבה: תשתית התקשורת של WPF מול WCF.
-// משתמשים: WcfServiceClient והמסכים שמציגים הודעת חסימת הרשאה.
-// קשר בפרויקט: התנהגות זו שומרת את קוד התשובה מהשרת ואינה קובעת הרשאה.
+// מטרה: שומר את קוד התגובה של פעולות מוגנות ב־WPF.
+// מי משתמש: WcfServiceClient.
+// פעולות: AddBindingParameters ו־ResponseHandler.SendAsync.
+// תלויות: IEndpointBehavior ו־HttpMessageHandler.
 using System.Net;
 using System.Net.Http;
 using System.ServiceModel.Channels;

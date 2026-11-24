@@ -1,3 +1,7 @@
+// מטרה: מגדיר דוגמאות למשחקים ציבוריים במסך אורח של WPF.
+// מי משתמש: GuestMatchesViewModel ו־MainWindow.
+// פעולות: GuestMatch ו־DemoFixtures.
+// תלויות: נתוני דוגמה בקוד התצוגה.
 // משחקי הדגמה לאורח במסך C2. שמות הקבוצות זהים לשמות שבמסד ההגשה.
 namespace FootballManager.WPF.Models;
 

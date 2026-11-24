@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FootballManager.WCF", "Foot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FootballManager.WPF", "FootballManager.WPF\FootballManager.WPF.csproj", "{8F537CA9-3DE5-47AF-A84E-0D7594C47B0B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FootballManager.Android", "FootballManager.Android\FootballManager.Android.csproj", "{8C4F6131-CD33-4345-9879-391FC2CCBFFB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{8F537CA9-3DE5-47AF-A84E-0D7594C47B0B}.Release|x64.Build.0 = Release|Any CPU
 		{8F537CA9-3DE5-47AF-A84E-0D7594C47B0B}.Release|x86.ActiveCfg = Release|Any CPU
 		{8F537CA9-3DE5-47AF-A84E-0D7594C47B0B}.Release|x86.Build.0 = Release|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Debug|x64.Build.0 = Debug|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Debug|x86.Build.0 = Debug|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Release|x64.ActiveCfg = Release|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Release|x64.Build.0 = Release|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Release|x86.ActiveCfg = Release|Any CPU
+		{8C4F6131-CD33-4345-9879-391FC2CCBFFB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

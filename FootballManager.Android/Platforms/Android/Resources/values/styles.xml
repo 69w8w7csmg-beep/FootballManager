@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+מטרה: שומר על מקום נקי למסך MAUI בשלב 9.
+מי משתמש: MainActivity.
+פעולות: מסתיר סרגל פעולה כפול ושומר מרווח לסרגלי Android.
+תלויות: ערכת Maui.MainTheme ומשאבי Android SDK.
+-->
+<resources>
+    <style name="FootballManagerTheme" parent="Maui.MainTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+        <item name="android:statusBarColor">#0C1724</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

@@ -1,7 +1,7 @@
-// תפקיד הקובץ: הגדרת DTO להעברת נתוני העברה וסטטיסטיקות.
-// שכבה: חוזים משותפים לפרויקטי WPF ולשירות WCF.
-// משתמשים: לקוח WPF, שירות WCF ומימושי החוזה.
-// קשר בפרויקט: הטיפוסים כאן מתארים את המידע שעובר בין המסך, השירות והמסד.
+// מטרה: העברת נתוני העברות וסטטיסטיקות בסבב 4.
+// מי משתמש: Cycle4ContentViewModel ו־FootballManagerService.
+// פעולות: TransferDto, PlayerStatisticDto ותשובות הרשימות.
+// תלויות: DataContract של WCF.
 using System.Runtime.Serialization;
 
 namespace FootballManager.Contracts;

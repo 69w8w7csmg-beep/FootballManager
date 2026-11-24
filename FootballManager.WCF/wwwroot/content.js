@@ -1,7 +1,7 @@
-// תפקיד הקובץ: מנהל את מסכי התוכן והטפסים בדפדפן.
-// שכבה: לקוח האתר.
-// משתמשים: אורח, שחקן, מאמן ואדמין.
-// קשר בפרויקט: קורא למתאם השירות ומציג את התגובה שקבע השרת.
+// מטרה: מנהל תפריטי תוכן וטפסים באתר.
+// מי משתמש: content.html ודפדפן המשתמש.
+// פעולות: api, load, editor וטיפול בשליחה ובבחירה.
+// תלויות: מתאם FootballManagerWebApi ועוגיית Session.
 (() => {
   const $ = (selector) => document.querySelector(selector);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -14,6 +14,7 @@
     favorites: {title:'המועדפים שלי',url:'/api/favorites',items:'players',id:'playerId',fields:[]}
   };
   let role = 'Guest', current = 'players', rows = [], loadVersion = 0;
+  /** שולח בקשת HTTP לאתר מאותו מקור. מציג 401 או 403 לפי תשובת השרת במקום להסיק הרשאה מהתפריט. */
   async function api(url, options) {
     const response = await fetch(url,{credentials:'same-origin',...options});
     const data = await response.json().catch(()=>({}));
@@ -22,17 +23,20 @@
     if (!response.ok) throw new Error(`${response.status} · ${data.message || 'הפעולה נחסמה בשרת'}`);
     return data;
   }
+  /** מחזיר למשתמש טקסט מצב ומסמן כשזו הודעת שגיאה. */
   function message(text, failed = false) {
     const status = $('#message');
     status.textContent = text;
     status.classList.toggle('error', failed);
   }
+  /** מציג את מדורי התוכן המתאימים לתפקיד שקיבל מהשרת. */
   function renderTabs() {
     const tabs = ['players', 'teams', 'matches', 'transfers'];
     if (role === 'Manager') tabs.push('statistics');
     if (role === 'Player') tabs.push('favorites');
     $('#tabs').innerHTML = tabs.map(key=>`<button data-tab="${key}" class="${current===key?'active':''}" aria-pressed="${current===key}">${schemas[key].title}</button>`).join('');
   }
+  /** טוען מדור אחד. מספר הבקשה מונע מתשובה איטית למחוק את הודעת המדור שנבחר אחריה. */
   async function load(key) {
     const version = ++loadVersion;
     const schema = schemas[key];
@@ -54,13 +58,30 @@
       if (version === loadVersion) message(error.message, true);
     }
   }
+  /** מציג טופס ריק ליצירה או שדות מרשומה קיימת לעריכה. */
   function editor(index=-1) {
     const schema=schemas[current], row=rows[index]||{};
     $('#editor').hidden=false;$('#editor-title').textContent=index<0?'הוספת רשומה':'עדכון רשומה';
-    $('#record-form').dataset.index=index;
-    $('#record-form').innerHTML=schema.fields.map(([field,label,type])=>`<label>${label}<input name="${field}" type="${type}" value="${esc(type==='date'&&row[field]?String(row[field]).slice(0,10):row[field]??'')}" required></label>`).join('')+'<button class="primary" type="submit">שמור דרך השירות</button>';
+    const form = $('#record-form');
+    form.dataset.index = index;
+    form.innerHTML = schema.fields.map(([field,label,type]) => {
+      const decimal = field === 'price' || field === 'budget' || (field === 'rating' && current === 'statistics');
+      const step = decimal ? ' step="any"' : '';
+      const value = type === 'date' && row[field] ? String(row[field]).slice(0, 10) : row[field] ?? '';
+      return `<label>${label}<input name="${field}" type="${type}" value="${esc(value)}"${step} required></label>`;
+    }).join('') + '<button class="primary" type="submit" disabled>שמור דרך השירות</button>';
+    updateEditorButton();
     $('#editor').scrollIntoView({behavior:'smooth'});
   }
+  /** מעדכן את כפתור השמירה לפי תקינות הקלט הנוכחי. */
+  function updateEditorButton() {
+    const form = $('#record-form');
+    const submit = form.querySelector('[type=submit]');
+    if (!submit) return;
+    // תוקף בסיסי בדפדפן חוסך שליחה של טופס חסר. השירות בודק ערכים, הרשאות וקשרים במסד.
+    submit.disabled = !form.checkValidity() || Array.from(form.querySelectorAll('input')).some(input => !input.value.trim());
+  }
+  $('#record-form').addEventListener('input', updateEditorButton);
   document.addEventListener('click',async event=>{
     const tab=event.target.closest('[data-tab]');if(tab){await load(tab.dataset.tab);return;}
     if(event.target.id==='new-record'){editor();return;}

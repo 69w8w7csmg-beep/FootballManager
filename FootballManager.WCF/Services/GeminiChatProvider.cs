@@ -1,7 +1,7 @@
-// תפקיד הקובץ: שולח בקשות בינה ומפרש תשובות מובנות.
-// שכבה: שירותים בשרת WCF.
-// משתמשים: הצ'אט והסקאוט של FootballManager.
-// קשר בפרויקט: קורא הגדרות שרת בלבד ומחזיר תשובה למחלקת השירות.
+// מטרה: שולח בקשות בינה ופועל בשרת בלבד.
+// מי משתמש: FootballManagerService.ChatAsync ו־GeminiPlayerAnalysisProvider.
+// פעולות: AskAsync, AskLocalAsync ופענוח תשובת הספק.
+// תלויות: HttpClient, הגדרות השרת ומפתח במשתנה סביבה.
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -17,6 +17,9 @@ public sealed class GeminiChatProvider
     private readonly HttpClient _http;
     private readonly IConfiguration _configuration;
 
+    /// <summary>מקבל HttpClient והגדרות שרת לשימוש בבקשות בינה.</summary>
+    /// <param name="http">HttpClient שיוצר בקשות לספק הבינה.</param>
+    /// <param name="configuration">הגדרות השרת למודל ולכתובת השירות.</param>
     public GeminiChatProvider(HttpClient http, IConfiguration configuration)
     {
         _http = http;
@@ -65,6 +68,12 @@ public sealed class GeminiChatProvider
         return await SendAsync(request, local: false, cancellationToken);
     }
 
+    /// <summary>שולח היסטוריה ושאלה לספק מקומי ב־loopback, ומחזיר תשובה מובנית או שגיאת ספק.</summary>
+    /// <param name="system">הוראת מערכת שמספק השרת.</param>
+    /// <param name="question">השאלה שהשחקן הקליד.</param>
+    /// <param name="history">תורים קודמים של החשבון המחובר.</param>
+    /// <param name="cancellationToken">מאפשר לעצור את הבקשה אם הפעולה בוטלה.</param>
+    /// <returns>טקסט התשובה ומזהה שחקן מוצע, אם הספק הציע אחד.</returns>
     private async Task<GeminiChatAnswer> AskLocalAsync(string system, string question,
         IReadOnlyList<AiChatTurn> history, CancellationToken cancellationToken)
     {
@@ -89,6 +98,11 @@ public sealed class GeminiChatProvider
         return await SendAsync(request, local: true, cancellationToken);
     }
 
+    /// <summary>מפעיל קריאת HTTP לספק שנבחר וקורא טקסט ומזהה מתוך ה־JSON. תקלות מומרות לקודי 502, 503 ו־504.</summary>
+    /// <param name="request">בקשת HTTP או DTO לפי הפעולה.</param>
+    /// <param name="local">קובע איזה מבנה JSON לקרוא מתשובת הספק.</param>
+    /// <param name="cancellationToken">מאפשר לעצור את הבקשה אם הפעולה בוטלה.</param>
+    /// <returns>טקסט התשובה ומזהה שחקן מוצע, אם הספק הציע אחד.</returns>
     private async Task<GeminiChatAnswer> SendAsync(HttpRequestMessage request, bool local, CancellationToken cancellationToken)
     {
         HttpResponseMessage response;

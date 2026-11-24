@@ -1,3 +1,7 @@
+// מטרה: שומר בזיכרון הלקוח את פרטי ההתחברות שאישר השרת.
+// מי משתמש: MainWindow, MatchesViewModel, Cycle4ContentViewModel וחלונות הבינה.
+// פעולות: Start ו־Clear של מצב Session.
+// תלויות: LoginResponseDto מהחוזה.
 using FootballManager.Contracts;
 
 namespace FootballManager.WPF.ViewModels;

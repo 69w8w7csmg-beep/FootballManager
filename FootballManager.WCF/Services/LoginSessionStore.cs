@@ -1,3 +1,7 @@
+// מטרה: שומר מיפוי מאסימון התחברות לחשבון בשרת.
+// מי משתמש: FootballManagerService.
+// פעולות: יצירת אסימון, חיפושו וביטולו.
+// תלויות: ConcurrentDictionary ומחולל אקראי להצפנה.
 using System.Collections.Concurrent;
 
 namespace FootballManager.WCF.Services;

@@ -1,7 +1,7 @@
-// תפקיד הקובץ: להפעיל את שירות WCF ואת נקודות ה־REST הקיימות של האתר.
-// שכבה: נקודת הכניסה של שרת ASP.NET Core ו־CoreWCF.
-// משתמשים: סביבת ההפעלה טוענת את הגדרות החיבור, המסד והשירותים מכאן.
-// קשר בפרויקט: AccessDatabase ומאגרי הנתונים נרשמים ב־DI ואז מוזרקים ל־FootballManagerService.
+// מטרה: מפעיל בשרת את WCF, אתר הלקוח ופקודות תחזוקת המסד.
+// מי משתמש: dotnet run, הלקוחות ופקודות תחזוקה.
+// פעולות: רישום השירותים, מיפוי הכתובות והכנת חשבונות דמה.
+// תלויות: CoreWCF, AccessDatabase ו־FootballManagerWebApi.
 using CoreWCF;
 using CoreWCF.Configuration;
 using CoreWCF.Channels;

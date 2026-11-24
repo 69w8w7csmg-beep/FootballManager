@@ -1,7 +1,7 @@
-// תפקיד הקובץ: בונה בקשת ניתוח מנתוני השחקן.
-// שכבה: שירותי בינה בשרת WCF.
-// משתמשים: פעולת ניתוח שחקן.
-// קשר בפרויקט: מפעיל את אותו מתאם ספק שמשמש לצ'אט.
+// מטרה: הופך רשומת שחקן לבקשת ניתוח בשרת.
+// מי משתמש: FootballManagerService.AnalyzePlayerAsync.
+// פעולות: AnalyzePlayerAsync.
+// תלויות: GeminiChatProvider ו־PlayerDto.
 using FootballManager.Contracts;
 
 namespace FootballManager.WCF.Services;
@@ -11,6 +11,8 @@ public sealed class GeminiPlayerAnalysisProvider : PlayerAnalysisProvider
 {
     private readonly GeminiChatProvider _chat;
 
+    /// <summary>משתמש במתאם הבינה הקיים לניתוח שחקן.</summary>
+    /// <param name="chat">מתאם הבינה שמשתמשים בו גם בצ׳אט.</param>
     public GeminiPlayerAnalysisProvider(GeminiChatProvider chat) => _chat = chat;
 
     /// <summary>שולח לספק את פרופיל השחקן שנשלף בשרת ומחזיר ניתוח בעברית.</summary>

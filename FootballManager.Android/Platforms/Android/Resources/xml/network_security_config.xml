@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+מטרה: מגביל HTTP להרצה המקומית של Android בשלב 9.
+מי משתמש: AndroidManifest ורכיב התקשורת של Android.
+פעולות: מאפשר cleartext רק לכתובת loopback.
+תלויות: adb reverse לפורט 5152 במחשב המארח.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain>localhost</domain>
+    </domain-config>
+</network-security-config>

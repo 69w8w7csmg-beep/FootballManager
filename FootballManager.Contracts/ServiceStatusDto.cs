@@ -1,3 +1,7 @@
+// מטרה: שיתוף DTO של החשבון ומצב השירות.
+// מי משתמש: שלושת הלקוחות ו־FootballManagerService.
+// פעולות: LoginRequestDto, LoginResponseDto, ManagedUserDto ותשובת פעולה.
+// תלויות: DataContract של WCF.
 using System.Runtime.Serialization;
 
 namespace FootballManager.Contracts;

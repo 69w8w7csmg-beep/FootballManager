@@ -1,3 +1,7 @@
+// מטרה: מחזיק את מחלקת האתחול של WPF.
+// מי משתמש: WPF וקוד שנוצר מ־App.xaml.
+// פעולות: Application של FootballManager.
+// תלויות: App.xaml ותשתית WPF.
 using System.Configuration;
 using System.Data;
 using System.Windows;

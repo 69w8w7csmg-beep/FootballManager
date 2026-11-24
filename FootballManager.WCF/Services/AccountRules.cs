@@ -1,3 +1,7 @@
+// מטרה: בודק שם משתמש וסיסמה בשרת לפני יצירת חשבון.
+// מי משתמש: FootballManagerService ו־Program.
+// פעולות: ValidateUsername ו־ValidatePassword.
+// תלויות: כללי אורך ותווים של החשבון.
 namespace FootballManager.WCF.Services;
 
 /// <summary>כללי שרת לבדיקת שם משתמש וסיסמה בהרשמה; השרת מפעיל אותם גם אם לקוח שולח בקשה ישירות.</summary>
@@ -27,7 +31,7 @@ public static class AccountRules
     }
 
     /// <summary>בודקת שסיסמה קיימת ואורכה 8–128 תווים. מחזירה הודעת הסבר או null, והשירות עוצר הרשמה כשהבדיקה נכשלת.</summary>
-    /// <param name="password">סיסמה או גיבוב סיסמה, בהתאם לסוג הפרמטר ולשלב ההזדהות.</param>
+    /// <param name="password">הסיסמה שהוקלדה, לפני ש־PasswordHasher יוצר ממנה גיבוב.</param>
     /// <returns>הודעת שגיאה אם הבדיקה נכשלה, או null אם הנתונים תקינים.</returns>
     public static string? ValidatePassword(string? password)
     {

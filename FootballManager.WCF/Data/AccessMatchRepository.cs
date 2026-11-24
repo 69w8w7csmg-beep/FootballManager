@@ -1,3 +1,7 @@
+// מטרה: קורא, שומר ומוחק משחקים בסבב 3.
+// מי משתמש: FootballManagerService.Matches.
+// פעולות: GetMatches, SaveMatch ו־DeleteMatch.
+// תלויות: AccessDatabase, OleDb ו־MatchDto.
 // שליפה, שמירה ומחיקה של משחקים בטבלת Matches במסד Access.
 using System.Data.OleDb;
 using FootballManager.Contracts;

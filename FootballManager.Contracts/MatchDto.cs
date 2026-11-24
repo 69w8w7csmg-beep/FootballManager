@@ -1,3 +1,7 @@
+// מטרה: שיתוף נתוני משחק ותוצאה בסבב 3.
+// מי משתמש: MatchesViewModel, MainPage ו־FootballManagerService.
+// פעולות: MatchDto ו־MatchesResponseDto.
+// תלויות: DataContract של WCF.
 // נתוני המשחק ותשובת השליפה המשותפים ללקוח WPF ולשירות WCF.
 using System.Runtime.Serialization;
 

@@ -1,3 +1,7 @@
+// מטרה: קורא ושומר משתמשים ו־PasswordHash בשרת.
+// מי משתמש: FootballManagerService ופקודות ההדגמה ב־Program.
+// פעולות: חיפוש חשבון, יצירה, שינוי תפקיד וחסימה.
+// תלויות: AccessDatabase, OleDb וטבלת Users.
 using System.Data.OleDb;
 using FootballManager.Contracts;
 

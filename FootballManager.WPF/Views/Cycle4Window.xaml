@@ -1,4 +1,9 @@
-<!-- תפקיד הקובץ: תיאור חלון C4 והפקדים שמציגים העברות וסטטיסטיקות. -->
+<!--
+מטרה: מציג העברות וסטטיסטיקות בסבב 4 ב־WPF.
+מי משתמש: MainWindow ומאמן מחובר.
+פעולות: טפסים, רשימות ופקודות שמירה.
+תלויות: Cycle4ContentViewModel דרך Binding.
+-->
 <!-- שכבה: View של WPF. -->
 <!-- משתמשים: Cycle4Window.xaml.cs ו־Cycle4ContentViewModel. -->
 <!-- קשר בפרויקט: Binding ופקודות מחברים בין הפקדים ל־ViewModel ולשירות WCF. -->
@@ -70,6 +75,7 @@
         </DockPanel>
         <!-- שתי הכרטיסיות משתמשות באותו DataContext; הרשימות והפקודות מגיעות מה־ViewModel. -->
         <TabControl x:Name="Cycle4Tabs" Grid.Row="1" Background="#101F30" Foreground="#F3F6FA">
+            <!-- העברות: הרשימה והטופס קשורים לפקודות ולשדות ב־Cycle4ContentViewModel. -->
             <TabItem x:Name="TransfersTab" Header="העברות">
                 <Grid Margin="12,10">
                     <Grid.RowDefinitions>
@@ -144,6 +150,7 @@
                     </Border>
                 </Grid>
             </TabItem>
+            <!-- סטטיסטיקות: בחירת שחקן ומשחק מתורגמת למזהים בחוזה. -->
             <TabItem x:Name="StatisticsTab" Header="סטטיסטיקות שחקנים">
                 <Grid Margin="12,10">
                     <Grid.RowDefinitions>

@@ -1,7 +1,7 @@
-// תפקיד הקובץ: יצירת חלון C4 וחיבורו ל־ViewModel ולפקודות הסגירה.
-// שכבה: code-behind של תצוגת WPF.
-// משתמשים: MainWindow פותח את החלון עבור משתמש מורשה.
-// קשר בפרויקט: חלון זה מציג תוצאות מה־ViewModel; הוא אינו ניגש ישירות למסד.
+// מטרה: מקים חלון C4 ומחבר אותו לתצוגה ולפקודות.
+// מי משתמש: MainWindow ו־Cycle4Window.xaml.
+// פעולות: אתחול, אירועי בחירה וסגירת החלון.
+// תלויות: Cycle4ContentViewModel.
 using System.Windows;
 using FootballManager.Contracts;
 using FootballManager.WPF.Services;

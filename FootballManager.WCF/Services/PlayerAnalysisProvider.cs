@@ -1,7 +1,7 @@
-// תפקיד הקובץ: מגדיר את פעולת מפיק הניתוח ואת שגיאת הספק.
-// שכבה: שירותים בשרת WCF.
-// משתמשים: הסקאוט ומימוש ספק הבינה.
-// קשר בפרויקט: מאפשר לשירות לבקש ניתוח דרך מחלקת בסיס משותפת.
+// מטרה: מגדיר ממשק מחלקה לספק ניתוח שחקן בשרת.
+// מי משתמש: FootballManagerService ו־GeminiPlayerAnalysisProvider.
+// פעולות: AnalyzePlayerAsync ושגיאת PlayerAnalysisProviderException.
+// תלויות: PlayerDto מהספרייה המשותפת.
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;

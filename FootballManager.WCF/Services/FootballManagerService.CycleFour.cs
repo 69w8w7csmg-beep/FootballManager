@@ -1,7 +1,7 @@
-// תפקיד הקובץ: מימוש פעולות C4 לשליפת נתונים, CRUD והרשאות.
-// שכבה: שירות WCF בצד השרת.
-// משתמשים: WcfServiceClient שולח לכאן בקשות עם אסימון משתמש.
-// קשר בפרויקט: השירות בודק Role ומעביר פעולות תקינות למאגרי Access של C4.
+// מטרה: מנהל העברות וסטטיסטיקות בסבב 4 בשרת.
+// מי משתמש: Cycle4ContentViewModel ומתאם האתר.
+// פעולות: GetTransfers, SaveTransfer ופעולות הסטטיסטיקות.
+// תלויות: AccessTransferRepository, AccessPlayerStatisticRepository ואימות חשבון.
 using System.Data.OleDb;
 using System.Net;
 using CoreWCF;
@@ -15,7 +15,7 @@ public sealed partial class FootballManagerService
 {
     /// <summary>מופעלת כאשר WcfServiceClient מבקש את רשימת ההעברות. השרת מזהה את המשתמש מתוך sessionToken, מתיר גישה רק למאמן, קורא למאגר Access ומחזיר את הרשומות. למשתמש לא מחובר נקבע 401, לסוג אחר נקבע 403, ושגיאת Access מוחזרת כהודעת כשל.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
-    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
+    /// <returns>תוצאת שליפה ורשימת העברות כאשר הבקשה הצליחה.</returns>
     public TransfersResponseDto GetTransfers(string sessionToken)
     {
         // השרת בודק את המשתמש וה־Role מתוך האסימון לפני כל גישה לתוכן.
@@ -40,7 +40,7 @@ public sealed partial class FootballManagerService
     /// <summary>מופעלת בעקבות שמירת העברה דרך חוזה WCF. תחילה נבדקת הרשאת Manager, אחר כך מזהי השחקן והקבוצות, תאריך ומחיר. מזהה 0 מוסיף רשומה ומזהה קיים מעדכן אותה; המאגר שומר ב־Access והתוצאה מוחזרת ללקוח. OleDbException הופכת להודעת כשל.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="transfer">נתוני העברת השחקן שעליהם פועלת הפעולה.</param>
-    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
+    /// <returns>תוצאת הצלחה והודעה להצגה.</returns>
     public OperationResultDto SaveTransfer(string sessionToken, TransferDto transfer)
     {
         // הרשאה נבדקת בשרת, כך שהלקוח אינו יכול לבחור לעצמו תפקיד.
@@ -72,7 +72,7 @@ public sealed partial class FootballManagerService
     /// <summary>מופעלת כאשר לקוח Manager מבקש למחוק העברה. השרת בודק את האסימון ואת התפקיד, מאמת מזהה חיובי, ומעביר את המחיקה למאגר Access. התשובה מציינת הצלחה, רשומה חסרה או שגיאת מסד.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="transferId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
-    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
+    /// <returns>תוצאת הצלחה והודעה להצגה.</returns>
     public OperationResultDto DeleteTransfer(string sessionToken, int transferId)
     {
         var denial = CycleFourAccessError(sessionToken);
@@ -93,7 +93,7 @@ public sealed partial class FootballManagerService
 
     /// <summary>מופעלת כאשר WcfServiceClient מבקש את סטטיסטיקות המשחק. השרת בודק שהמשתמש המחובר הוא Manager, קורא את הנתונים דרך מאגר Access ומחזיר DTO של הרשומות. כשל הרשאה או שגיאת מסד מוחזרים כהודעת שירות.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
-    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
+    /// <returns>תוצאת שליפה ורשימת סטטיסטיקות כאשר הבקשה הצליחה.</returns>
     public PlayerStatisticsResponseDto GetPlayerStatistics(string sessionToken)
     {
         var denial = CycleFourAccessError(sessionToken);
@@ -116,8 +116,8 @@ public sealed partial class FootballManagerService
 
     /// <summary>מופעלת לשמירת סטטיסטיקה חדשה או לעדכון קיימת. השרת בודק הרשאת Manager, מזהי שחקן ומשחק, שערים, בישולים, דקות ודירוג 0–100. לאחר מכן הוא שומר ב־Access ומחזיר תוצאה; שגיאת קשר או OleDbException מוחזרת כהודעת כשל.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
-    /// <param name="statistic">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
-    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
+    /// <param name="statistic">נתוני הסטטיסטיקה ששייכים לשחקן ולמשחק.</param>
+    /// <returns>תוצאת הצלחה והודעה להצגה.</returns>
     public OperationResultDto SavePlayerStatistic(string sessionToken, PlayerStatisticDto statistic)
     {
         // ההרשאה נבדקת גם כאן, ללא קשר לבדיקות הכפתור במסך.
@@ -147,7 +147,7 @@ public sealed partial class FootballManagerService
     /// <summary>מופעלת כאשר Manager מבקש למחוק רשומת סטטיסטיקה. השרת מאמת משתמש והרשאה, בודק מזהה, ומבקש מהמאגר למחוק. התשובה מפרטת הצלחה, היעדר רשומה או שגיאת Access.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="statisticId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
-    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
+    /// <returns>תוצאת הצלחה והודעה להצגה.</returns>
     public OperationResultDto DeletePlayerStatistic(string sessionToken, int statisticId)
     {
         var denial = CycleFourAccessError(sessionToken);

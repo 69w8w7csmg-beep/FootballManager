@@ -1,7 +1,7 @@
-// תפקיד הקובץ: קריאה, שמירה ומחיקה של העברות בטבלת Transfers.
-// שכבה: שכבת גישה לנתונים בצד שרת WCF.
-// משתמשים: FootballManagerService מעביר לכאן בקשות לאחר בדיקת הרשאה.
-// קשר בפרויקט: המחלקה משתמשת ב־AccessDatabase וב־OleDb; המסך אינו ניגש אליה.
+// מטרה: קורא ושומר העברות בסבב 4.
+// מי משתמש: FootballManagerService.CycleFour.
+// פעולות: GetTransfers ופעולות שמירה ומחיקה.
+// תלויות: AccessDatabase, OleDb ו־TransferDto.
 using System.Data.OleDb;
 using FootballManager.Contracts;
 

@@ -1,7 +1,7 @@
-// תפקיד הקובץ: מטפל בשאלה או באיפוס צ'אט עבור השחקן המחובר.
-// שכבה: לוגיקה עסקית בשרת WCF.
-// משתמשים: מסך הצ'אט בלקוח WPF דרך החוזה.
-// קשר בפרויקט: בודק בעלות, מנהל היסטוריה ופונה לספק ולמועדפים.
+// מטרה: מנהל שיחה ומועדפים בשרת עבור Player.
+// מי משתמש: AiChatWindow דרך חוזה WCF.
+// פעולות: ChatAsync, איפוס ובדיקת שם לפני הוספה.
+// תלויות: AiChatHistoryStore, GeminiChatProvider ו־AccessFootballRepository.
 using System.Data.OleDb;
 using System.Net;
 using FootballManager.Contracts;
@@ -90,6 +90,9 @@ public sealed partial class FootballManagerService
         finally { conversation.Gate.Release(); }
     }
 
+    /// <summary>מזהה שמות מלאים שמופיעים בטקסט ומחזיר את רשומות השחקנים שתואמות להם.</summary>
+    /// <param name="players">רשומות שחקנים שנטענו מהקטלוג.</param>
+    /// <param name="text">הטקסט לעיבוד או להצגה.</param>
     private static List<PlayerDto> FindMentionedPlayers(IEnumerable<PlayerDto> players, string text) =>
         players.Where(player => text.Contains($"{player.FirstName} {player.LastName}",
             StringComparison.OrdinalIgnoreCase)).ToList();

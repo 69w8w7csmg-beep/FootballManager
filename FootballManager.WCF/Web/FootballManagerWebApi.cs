@@ -1,3 +1,7 @@
+// מטרה: מתרגם בקשות דפדפן לפעולות חוזה WCF באותו שרת.
+// מי משתמש: site.js, content.js ו־Program.
+// פעולות: MapFootballManagerWebApi, ProtectedResult וקריאת עוגיית Session.
+// תלויות: HttpContext, IFootballManagerService ו־FootballManagerService.
 using FootballManager.Contracts;
 using FootballManager.WCF.Contracts;
 using FootballManager.WCF.Services;

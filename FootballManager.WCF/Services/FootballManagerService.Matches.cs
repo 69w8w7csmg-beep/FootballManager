@@ -1,4 +1,8 @@
-// פעולות משחקים ב־WCF, כולל אימות הרשאה לכל אחד מארבעת סוגי המשתמשים.
+// מטרה: מנהל משחקים ותוצאות בסבב 3 בשרת.
+// מי משתמש: שלושת הלקוחות דרך IFootballManagerService.
+// פעולות: GetMatches, SaveMatch, DeleteMatch ובדיקת הרשאה.
+// תלויות: AccessMatchRepository וזיהוי Session.
+// הרשאות משחקים: Player קורא, Manager קורא וכותב, אורח מקבל 401 ואדמין מקבל 403.
 using System.Data.OleDb;
 using System.Net;
 using CoreWCF;
@@ -13,7 +17,7 @@ public sealed partial class FootballManagerService
     /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Matches ומחזירה את התוצאה לשכבה הקוראת. נקראת בקוד מתוך Get Matches, Get Matches Async.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="searchText">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
-    /// <param name="matchDate">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
+    /// <param name="matchDate">תאריך לסינון, או null לקבלת משחקים מכל התאריכים.</param>
     /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
     public MatchesResponseDto GetMatches(string sessionToken, string searchText, DateTime? matchDate)
     {
@@ -25,10 +29,10 @@ public sealed partial class FootballManagerService
         return new MatchesResponseDto { Succeeded = true, Matches = _matches.GetMatches(searchText, matchDate) };
     }
 
-    /// <summary>מבצעת את פעולת הנתונים Save Match. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Save Match Async.</summary>
+    /// <summary>שומר תאריך, קבוצות ותוצאה עבור מאמן. השרת מחזיר 401 ללא כניסה ו־403 לתפקיד אחר.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
-    /// <param name="match">נתוני משחק או סטטיסטיקה המוצגים או נשמרים.</param>
-    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
+    /// <param name="match">נתוני משחק, כולל תאריך, מזהי הקבוצות ושערים.</param>
+    /// <returns>תוצאת הצלחה והודעה להצגה.</returns>
     public OperationResultDto SaveMatch(string sessionToken, MatchDto match)
     {
         var denial = MatchAccessError(sessionToken, write: true);
@@ -52,10 +56,10 @@ public sealed partial class FootballManagerService
         }
     }
 
-    /// <summary>מבצעת את פעולת הנתונים Delete Match. בשרת נבדקים הנתונים וההרשאה לפי מימוש הפעולה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Delete Match Async.</summary>
+    /// <summary>מוחק משחק לפי מזהה עבור מאמן. השרת מחזיר 401 בלי כניסה ו־403 לתפקיד אחר.</summary>
     /// <param name="sessionToken">אסימון ההפעלה של המשתמש; השרת מזהה בעזרתו את המשתמש ואינו מסתמך על Role שנשלח מהלקוח.</param>
     /// <param name="matchId">המזהה המספרי של הרשומה או הקשר המבוקש.</param>
-    /// <returns>אובייקט תשובה או נתונים לשכבה הקוראת.</returns>
+    /// <returns>תוצאת הצלחה והודעה להצגה.</returns>
     public OperationResultDto DeleteMatch(string sessionToken, int matchId)
     {
         var denial = MatchAccessError(sessionToken, write: true);

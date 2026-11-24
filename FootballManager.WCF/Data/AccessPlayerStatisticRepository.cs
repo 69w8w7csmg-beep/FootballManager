@@ -1,7 +1,7 @@
-// תפקיד הקובץ: קריאה, שמירה ומחיקה של סטטיסטיקות בטבלת PlayerStatistics.
-// שכבה: שכבת גישה לנתונים בצד שרת WCF.
-// משתמשים: FootballManagerService מפעיל את הפעולות לאחר בדיקת הרשאה.
-// קשר בפרויקט: המחלקה משתמשת ב־AccessDatabase וב־OleDb; המסך אינו ניגש אליה.
+// מטרה: קורא ושומר סטטיסטיקות בסבב 4.
+// מי משתמש: FootballManagerService.CycleFour.
+// פעולות: GetStatistics ופעולות שמירה ומחיקה.
+// תלויות: AccessDatabase, OleDb ו־PlayerStatisticDto.
 using System.Data.OleDb;
 using FootballManager.Contracts;
 

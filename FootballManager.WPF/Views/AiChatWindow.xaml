@@ -1,8 +1,8 @@
 <!--
-תפקיד הקובץ: מגדיר את תצוגת הצ'אט ואת כפתורי השליחה והאיפוס.
-שכבה: תצוגה בלקוח WPF.
-משתמשים: משתמשים בתפקיד שחקן.
-קשר בפרויקט: מציג את השיחה ואת ההודעה שחזרה מהשרת.
+מטרה: מציג היסטוריה, שאלת משתמש, שליחה ואיפוס בצ׳אט WPF.
+מי משתמש: MainWindow ושחקן מחובר.
+פעולות: Send_Click ו־Reset_Click.
+תלויות: AiChatWindow.xaml.cs ו־AccountSessionViewModel.
 -->
 <Window x:Class="FootballManager.WPF.Views.AiChatWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -20,15 +20,18 @@
             <TextBlock Text="שאל על שחקנים ובקש להוסיף שחקן יחיד למועדפים. השיחה נשמרת בשרת בזמן ההפעלה."
                        Foreground="#AFC2D4" TextWrapping="Wrap" Margin="0,5,0,0"/>
         </StackPanel>
+        <!-- הודעות הצ׳אט מוצגות ברשימה נגללת אחת. -->
         <Border Grid.Row="1" Background="#152438" CornerRadius="8" Padding="14">
             <ScrollViewer x:Name="ChatScroll" VerticalScrollBarVisibility="Auto">
                 <TextBlock x:Name="TranscriptText" Text="אפשר לשאול שאלה כדי להתחיל." TextWrapping="Wrap"
                            FontSize="15" LineHeight="24"/>
             </ScrollViewer>
         </Border>
+        <!-- הטקסט נשלח דרך WCF רק כשמשתמש לוחץ על שליחה. -->
         <TextBox x:Name="QuestionBox" Grid.Row="2" Height="75" Margin="0,12,0,8"
                  TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
                  Background="#152438" Foreground="#F3F6FA" BorderBrush="#30445C" Padding="10"/>
+        <!-- שליחה ואיפוס נעצרים בזמן בקשה פעילה כדי לשמור על סדר השיחה. -->
         <StackPanel Grid.Row="3" Orientation="Horizontal">
             <Button x:Name="SendButton" Content="שלח שאלה" Click="Send_Click" Padding="22,9"
                     Background="#E7BD20" Foreground="#152030" FontWeight="SemiBold" BorderThickness="0"/>

@@ -1,8 +1,8 @@
 <!--
-תפקיד הקובץ: מגדיר רשימת שחקנים ותצוגת ניתוח.
-שכבה: תצוגה בלקוח WPF.
-משתמשים: משתמשים בחלון הסקאוט.
-קשר בפרויקט: מציג נתונים מתוך AiScoutViewModel.
+מטרה: מציג בחירת שחקן וניתוח בסקאוט WPF.
+מי משתמש: MainWindow פותח את החלון, AiScoutViewModel מספק נתונים.
+פעולות: טעינת שחקנים ולחצן ניתוח.
+תלויות: Binding אל AiScoutViewModel.
 -->
 <Window x:Class="FootballManager.WPF.Views.AiScoutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -31,6 +31,7 @@
             <TextBlock Text="השימוש מותר ל־Player. גם בקשה מתפקיד אחר נבדקת ונחסמת בשרת." Foreground="#91A2B7" Margin="0,5,0,0" />
         </StackPanel>
         <TextBlock Grid.Row="1" Text="בחירת שחקן" Foreground="#C5D0DE" Margin="0,0,0,6" />
+        <!-- הבחירה קובעת את מזהה השחקן שהסקאוט שולח לשרת. -->
         <ComboBox x:Name="PlayersComboBox" Grid.Row="2" ItemsSource="{Binding Players}" SelectedItem="{Binding SelectedPlayer, UpdateSourceTrigger=PropertyChanged}"
                   Background="#152438" Foreground="#F3F6FA" BorderBrush="#30445C" Padding="10,8" Margin="0,0,0,12">
             <ComboBox.ItemTemplate>
@@ -46,6 +47,7 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
         <Border Grid.Row="3" Background="#152438" BorderBrush="#30445C" BorderThickness="1" CornerRadius="10" Padding="16">
+            <!-- תוצאת הניתוח יכולה להתפרס על כמה שורות ולכן מוצגת עם גלילה. -->
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <TextBlock Text="{Binding AnalysisText}" TextWrapping="Wrap" FontSize="15" LineHeight="25" />
             </ScrollViewer>

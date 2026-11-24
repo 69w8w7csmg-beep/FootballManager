@@ -1,3 +1,7 @@
+// מטרה: מקים את שמונה הטבלאות ופותח חיבור Access בשרת.
+// מי משתמש: Program ומאגרי Access.
+// פעולות: Initialize, EnsureTable ו־OpenConnection.
+// תלויות: OleDb, ACE 16 וקובץ FootballManager.accdb.
 using System.Data;
 using System.Data.OleDb;
 using System.Reflection;
@@ -45,6 +49,7 @@ public sealed class AccessDatabase
         connection.Open();
 
         // המשתמשים נשמרים עם PasswordHash ותפקיד; אורח אינו מקבל שורת Users.
+        // סבב 1: מפתח ראשי UserId. אין מפתחות זרים בטבלת החשבונות.
         EnsureTable(connection, "Users",
             "CREATE TABLE [Users] (" +
             "[UserId] COUNTER CONSTRAINT [PK_Users] PRIMARY KEY, " +
@@ -56,6 +61,7 @@ public sealed class AccessDatabase
         EnsureUserColumnSizes(connection);
         EnsureUsernameIndex(connection);
 
+        // סבב 2: קבוצות ותקציב, מפתח ראשי TeamId. הטבלה אינה מפנה לטבלה אחרת.
         EnsureTable(connection, "Teams",
             "CREATE TABLE [Teams] (" +
             "[TeamId] COUNTER CONSTRAINT [PK_Teams] PRIMARY KEY, " +
@@ -64,6 +70,7 @@ public sealed class AccessDatabase
             "[League] TEXT(60) NOT NULL, " +
             "[Budget] CURRENCY NOT NULL)");
 
+        // סבב 2: פרופיל ודירוגי שחקן, מפתח ראשי PlayerId. השיוך לקבוצה נשמר בנפרד.
         EnsureTable(connection, "Players",
             "CREATE TABLE [Players] (" +
             "[PlayerId] COUNTER CONSTRAINT [PK_Players] PRIMARY KEY, " +
@@ -82,6 +89,7 @@ public sealed class AccessDatabase
             "[Defense] BETWEEN 0 AND 100))");
 
         // טבלת קישור זו מממשת קשר רבים-לרבים בין שחקנים לקבוצות.
+        // סבב 2: המפתח מורכב מ־TeamId ו־PlayerId, שהם גם מפתחות זרים ל־Teams ו־Players.
         EnsureTable(connection, "TeamPlayers",
             "CREATE TABLE [TeamPlayers] (" +
             "[TeamId] LONG NOT NULL, " +
@@ -92,6 +100,7 @@ public sealed class AccessDatabase
             "CONSTRAINT [FK_TeamPlayers_Teams] FOREIGN KEY ([TeamId]) REFERENCES [Teams] ([TeamId]) ON DELETE CASCADE, " +
             "CONSTRAINT [FK_TeamPlayers_Players] FOREIGN KEY ([PlayerId]) REFERENCES [Players] ([PlayerId]) ON DELETE CASCADE)");
 
+        // סבב 3: תאריך ותוצאה, מפתח ראשי MatchId. שני מפתחות זרים ל־Teams מפרידים בית וחוץ.
         EnsureTable(connection, "Matches",
             "CREATE TABLE [Matches] (" +
             "[MatchId] COUNTER CONSTRAINT [PK_Matches] PRIMARY KEY, " +
@@ -104,6 +113,7 @@ public sealed class AccessDatabase
             "CONSTRAINT [FK_Matches_AwayTeam] FOREIGN KEY ([AwayTeamId]) REFERENCES [Teams] ([TeamId]))");
 
         // נתוני C4 תלויים בשחקן ובמשחק באמצעות Foreign Keys קיימים.
+        // מפתח ראשי StatisticId. ‏PlayerId מפנה ל־Players ו־MatchId מפנה ל־Matches.
         EnsureTable(connection, "PlayerStatistics",
             "CREATE TABLE [PlayerStatistics] (" +
             "[StatisticId] COUNTER CONSTRAINT [PK_PlayerStatistics] PRIMARY KEY, " +
@@ -117,6 +127,7 @@ public sealed class AccessDatabase
             "CONSTRAINT [FK_PlayerStatistics_Matches] FOREIGN KEY ([MatchId]) REFERENCES [Matches] ([MatchId]))");
 
         // כל העברה מחוברת לשחקן ולקבוצת המקור והיעד.
+        // סבב 4: מפתח ראשי TransferId. ‏PlayerId מפנה ל־Players ושתי הקבוצות מפנות ל־Teams.
         EnsureTable(connection, "Transfers",
             "CREATE TABLE [Transfers] (" +
             "[TransferId] COUNTER CONSTRAINT [PK_Transfers] PRIMARY KEY, " +
@@ -129,6 +140,7 @@ public sealed class AccessDatabase
             "CONSTRAINT [FK_Transfers_FromTeam] FOREIGN KEY ([FromTeamId]) REFERENCES [Teams] ([TeamId]), " +
             "CONSTRAINT [FK_Transfers_ToTeam] FOREIGN KEY ([ToTeamId]) REFERENCES [Teams] ([TeamId]))");
 
+        // סבב 2: מועדף אישי. המפתח UserId ו־PlayerId גם מקשר ל־Users ול־Players ומונע כפילויות.
         EnsureTable(connection, "Favorites",
             "CREATE TABLE [Favorites] (" +
             "[UserId] LONG NOT NULL, " +

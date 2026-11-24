@@ -1,6 +1,6 @@
-﻿# FootballManager — שלב 8, הלקוח השני וספר הפרויקט
+# FootballManager שלב 9
 
-הפתרון כולל את לקוח WPF הראשון, אתר הלקוח השני, שירות CoreWCF ופרויקט FootballManager.Contracts המשותף. מסד ההדגמה נמצא ב־FootballManager.WCF/Data/FootballManager.accdb וכולל את הטבלאות ונתוני הדמה של C1–C4. באתר נכנסים בדף הבית ופותחים את אזור התוכן בכתובת /content.html כדי לנהל שחקנים, קבוצות, משחקים, העברות וסטטיסטיקות לפי התפקיד. השרת אוכף הרשאות על אותן פעולות בשני הלקוחות.
+הפתרון כולל את לקוח WPF הראשון, אתר הלקוח השני, לקוח Android ב־.NET MAUI, שירות CoreWCF ופרויקט FootballManager.Contracts המשותף. מסד ההדגמה נמצא ב־FootballManager.WCF/Data/FootballManager.accdb וכולל את הטבלאות ונתוני הדמה של C1–C4. באתר נכנסים בדף הבית ופותחים את אזור התוכן בכתובת /content.html כדי לנהל שחקנים, קבוצות, משחקים, העברות וסטטיסטיקות לפי התפקיד. השרת אוכף הרשאות על אותן פעולות בשלושת הלקוחות.
 
 ## הפעלה מקומית ב־Windows
 
@@ -57,3 +57,18 @@ dotnet run --project .\FootballManager.WPF\FootballManager.WPF.csproj
 ```powershell
 dotnet run --project .\FootballManager.WCF\FootballManager.WCF.csproj -- --prepare-demo-accounts
 ```
+
+## Android
+
+לבניית הפתרון כולו נדרשים .NET 9 SDK, workload בשם `maui-android`, ‏JDK 17, ‏Android SDK 35 ו־Build Tools. לקוח הטלפון כולל חשבון ותוכן מסבבים 1 עד 3 ושולח בקשות SOAP לאותו WCF שמשמש את החלון.
+
+```powershell
+dotnet workload install maui-android
+dotnet build .\FootballManager.Android\FootballManager.Android.csproj
+adb devices
+adb reverse tcp:5152 tcp:5152
+```
+
+היישום עובד באמולטור Android או במכשיר מחובר ב־USB עם Android Debug Bridge. מתקינים באמצעות `adb install -r` את `il.school.footballmanager-Signed.apk` מתיקיית הבנייה של Android, ופותחים את FootballManager. אם מחוברים כמה מכשירים, מציינים את המכשיר ב־`adb -s <serial>`. גישור USB מפנה את `localhost:5152` במכשיר לשרת שעל המחשב שבו פועלים האתר ו־WPF.
+
+ב־Android נכנסים כ־Player, מוסיפים שחקן למועדפים ופותחים את **המועדפים שלי** כדי לראות את הרשומה שנשמרה. לחיצה על **משחקים ותוצאות** מציגה 401 לאורח ו־403 לאדמין. מאמן יכול לערוך שחקנים, קבוצות, סגלים ומשחקים.

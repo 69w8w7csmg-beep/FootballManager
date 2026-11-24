@@ -1,3 +1,7 @@
+// מטרה: מחבר את חלון המשחקים ל־ViewModel.
+// מי משתמש: MainWindow ו־MatchesWindow.xaml.
+// פעולות: אתחול וסגירת החלון.
+// תלויות: MatchesViewModel ו־WcfServiceClient.
 // חלון המשחקים מציג נתונים ופקודות שמגיעים מ־MatchesViewModel.
 using System.Windows;
 using FootballManager.WPF.Services;

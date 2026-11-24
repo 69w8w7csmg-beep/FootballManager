@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+מטרה: מגדיר את הרשאות לקוח Android בשלב 9.
+מי משתמש: מערכת Android בעת התקנה והרצה.
+פעולות: מאפשר פתיחת חיבור HTTP מקומי.
+תלויות: קובץ network_security_config של היישום.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:label="FootballManager" android:allowBackup="false" android:supportsRtl="true"
+                 android:networkSecurityConfig="@xml/network_security_config" />
+</manifest>

@@ -1,7 +1,7 @@
-// תפקיד הקובץ: מנהל בחירת שחקן והצגת ניתוח.
-// שכבה: ViewModel של לקוח WPF.
-// משתמשים: חלון הסקאוט.
-// קשר בפרויקט: מעביר בקשת ניתוח דרך WcfServiceClient.
+// מטרה: מנהל מצב בחירת שחקן וקריאת ניתוח ב־WPF.
+// מי משתמש: AiScoutWindow.
+// פעולות: LoadPlayersAsync ו־AnalyzeSelectedPlayerAsync.
+// תלויות: ViewModelBase, WcfServiceClient ו־AccountSessionViewModel.
 using System.Collections.ObjectModel;
 using FootballManager.Contracts;
 using FootballManager.WPF.Services;

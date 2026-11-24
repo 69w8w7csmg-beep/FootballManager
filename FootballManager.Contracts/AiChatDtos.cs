@@ -1,7 +1,7 @@
-// תפקיד הקובץ: מגדיר קלט ותשובה לצ'אט הבינה.
-// שכבה: חוזים משותפים.
-// משתמשים: לקוח WPF ושירות WCF.
-// קשר בפרויקט: מעביר אסימון, שאלה, מצב איפוס ותשובה.
+// מטרה: בקשה ותשובה לצ׳אט WPF.
+// מי משתמש: AiChatWindow ו־FootballManagerService.
+// פעולות: AiChatRequestDto ו־AiChatResponseDto.
+// תלויות: DataContract של WCF.
 using System.Runtime.Serialization;
 
 namespace FootballManager.Contracts;

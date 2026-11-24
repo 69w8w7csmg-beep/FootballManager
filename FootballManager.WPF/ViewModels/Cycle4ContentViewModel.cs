@@ -1,7 +1,7 @@
-// תפקיד הקובץ: ניהול מצב ופעולות מסך ההעברות והסטטיסטיקות של C4.
-// שכבה: ViewModel בצד WPF.
-// משתמשים: Cycle4Window מציג את הנתונים ומפעיל את הפקודות שבו.
-// קשר בפרויקט: ה־ViewModel פונה ל־WcfServiceClient, ולא פותח חיבור למסד.
+// מטרה: מנהל מצב ופקודות העברות וסטטיסטיקות בסבב 4.
+// מי משתמש: Cycle4Window.
+// פעולות: RefreshTransfers, SaveTransfer ופקודות הסטטיסטיקות.
+// תלויות: WcfServiceClient ו־AccountSessionViewModel.
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;

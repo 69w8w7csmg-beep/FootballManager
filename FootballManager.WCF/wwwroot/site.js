@@ -1,9 +1,14 @@
+// מטרה: מחבר את דף הבית, החשבון והדשבורדים באתר לשירות.
+// מי משתמש: index.html ודפדפן המשתמש.
+// פעולות: בדיקת קלט, התחברות, טעינת תוכן וניהול משתמשים.
+// תלויות: FootballManagerWebApi ו־DOM.
 (() => {
   const $ = (selector) => document.querySelector(selector);
   const state = { user: null, players: [], teams: [], adminUsers: [], adminSection: 'users' };
   const roleLabels = { Guest: 'אורח', Player: 'שחקן', Manager: 'מאמן', Admin: 'מנהל מערכת' };
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 
+  /** שולח בקשה לנתיב שהאתר מארח ומחזיר גוף JSON, אם השרת החזיר אותו. */
   async function api(url, options = {}) {
     const response = await fetch(url, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
     const payload = response.status === 204 ? {} : await response.json().catch(() => ({}));
@@ -11,11 +16,13 @@
     return payload;
   }
 
+  /** מציג הודעת מצב בטופס או בדשבורד ומסמן שגיאה כשנדרש. */
   function setMessage(selector, message, error = false) {
     const el = $(selector); if (!el) return;
     el.textContent = message || ''; el.classList.toggle('error', error);
   }
 
+  /** מחליף את התצוגה הפעילה וטוען נתונים למסך שדורש אותם. */
   function showView(name) {
     document.querySelectorAll('.view').forEach((view) => view.classList.toggle('active', view.id === `view-${name}`));
     document.querySelectorAll('.nav-link').forEach((button) => button.classList.toggle('active', button.dataset.view === name));
@@ -25,6 +32,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  /** מציג את מצב החשבון והתפקיד שקיבל הלקוח מן השרת. */
   function updateAccountBar() {
     const loggedIn = Boolean(state.user);
     $('#account-label').textContent = loggedIn ? `${state.user.username} · ${roleLabels[state.user.role] || state.user.role}` : 'אורח';
@@ -34,11 +42,13 @@
     $('#dashboard-open').classList.toggle('hidden', !loggedIn);
   }
 
+  /** בונה כרטיס משדות שחקן. פעולת המועדפים מוצגת לפי המסך. */
   function playerCard(player, allowFavorite = false) {
     const favorite = allowFavorite ? `<button class="mini-button favorite-button" data-favorite="${player.playerId}">＋ הוסף למועדפים</button>` : '';
     return `<article class="player-card"><span class="rating">${esc(player.rating)}</span><h3>${esc(player.firstName)} ${esc(player.lastName)}</h3><div class="player-meta">${esc(player.position)} · גיל ${esc(player.age)}</div><div class="player-stats"><span>מהירות ${esc(player.speed)}</span><span>מסירה ${esc(player.passing)}</span><span>הגנה ${esc(player.defense)}</span></div>${favorite}</article>`;
   }
 
+  /** קורא שחקנים מהשרת לפי טקסט ועמדה ומרענן את רשימת הכרטיסים. */
   async function loadPlayers() {
     const box = $('#players-list'); box.innerHTML = '<p class="muted">טוען נתונים…</p>';
     const params = new URLSearchParams();
@@ -51,6 +61,7 @@
     } catch (error) { box.innerHTML = ''; setMessage('#players-message', error.message, true); }
   }
 
+  /** טוען את הקבוצות ומציג אותן לבחירה. */
   async function loadTeams() {
     const box = $('#teams-list'); box.innerHTML = '<p class="muted">טוען נתונים…</p>';
     try {
@@ -60,6 +71,7 @@
     } catch (error) { box.innerHTML = ''; setMessage('#teams-message', error.message, true); }
   }
 
+  /** מקבל מזהה קבוצה ומציג את הסגל שהשירות מחזיר. */
   async function loadRoster(teamId) {
     const team = state.teams.find((item) => item.teamId === Number(teamId));
     if (!team) return;
@@ -69,6 +81,7 @@
     $('#roster-list').innerHTML = (result.players || []).length ? result.players.map((player) => playerCard(player, false)).join('') : '<p class="muted">אין שחקנים בסגל הפעיל של הקבוצה.</p>';
   }
 
+  /** טוען את החלק האישי לפי סוג החשבון הפעיל. */
   async function loadDashboard() {
     if (!state.user) return showView('home');
     $('#dashboard-title').textContent = `שלום, ${state.user.username}`;
@@ -79,6 +92,7 @@
     if (state.user.role === 'Admin') await loadAdminUsers();
   }
 
+  /** טוען מהשרת רק מועדפים של החשבון בעוגיית ההתחברות. */
   async function loadFavorites() {
     try {
       const result = await api('/api/favorites');
@@ -86,6 +100,7 @@
     } catch (error) { $('#favorites-list').innerHTML = `<p class="muted">${esc(error.message)}</p>`; }
   }
 
+  /** טוען שחקנים וקבוצות לפקדי המאמן. */
   async function loadManagerTools() {
     try {
       const [playerResult, teamResult] = await Promise.all([api('/api/players'), api('/api/teams')]);
@@ -96,6 +111,7 @@
     } catch (error) { setMessage('#manager-message', error.message, true); }
   }
 
+  /** מסדר את תצוגת ניהול המשתמשים לפי הכרטיס שבחר האדמין. */
   function renderUsers() {
     const users = state.adminUsers;
     $('#admin-users-count').textContent = `${users.length} חשבונות במערכת`;
@@ -120,11 +136,13 @@
     $('#admin-section-body').innerHTML = userTable(visible, state.adminSection === 'users', false);
   }
 
+  /** בונה טבלה מרשימת משתמשים וכולל פעולות לפי מצב התצוגה. */
   function userTable(users, actions, copy) {
     if (!users.length) return '<p class="muted">אין חשבונות להצגה.</p>';
     return `<div class="table-scroll"><table class="data-table"><thead><tr><th>שם משתמש</th><th>תפקיד</th><th>מצב</th><th>${actions ? 'פעולות' : (copy ? 'כלי עזר' : '')}</th></tr></thead><tbody>${users.map((user) => `<tr><td>${esc(user.username)}</td><td>${esc(roleLabels[user.role] || user.role)}</td><td><span class="badge ${user.isBlocked ? 'blocked' : ''}">${user.isBlocked ? 'חסום' : 'פעיל'}</span></td><td>${actions ? `<div class="table-actions"><select class="mini-role" data-user-role="${user.userId}" aria-label="תפקיד חדש"><option value="Player" ${user.role === 'Player' ? 'selected' : ''}>Player</option><option value="Manager" ${user.role === 'Manager' ? 'selected' : ''}>Manager</option><option value="Admin" ${user.role === 'Admin' ? 'selected' : ''}>Admin</option></select><button class="mini-button" data-save-role="${user.userId}">עדכן</button><button class="mini-button" data-toggle-block="${user.userId}" data-blocked="${user.isBlocked}">${user.isBlocked ? 'שחרר' : 'חסום'}</button><button class="mini-button danger" data-delete-user="${user.userId}">מחק</button></div>` : copy ? `<button class="mini-button" data-copy-user="${esc(user.username)}">העתק שם</button>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
   }
 
+  /** מבקש רשימת חשבונות מהשרת. הפעולה מוגבלת לאדמין. */
   async function loadAdminUsers() {
     try {
       const result = await api('/api/admin/users');
@@ -133,10 +151,12 @@
     } catch (error) { setMessage('#dashboard-message', error.message, true); }
   }
 
+  /** מפעיל את כפתור הכניסה רק כששם החשבון והסיסמה תקינים. */
   function validateLogin() {
     $('#login-submit').disabled = !($('#login-username').value.trim().length >= 3 && $('#login-password').value.length >= 8);
   }
 
+  /** בודק את שדות ההרשמה ואת התאמת אימות הסיסמה לפני השליחה. */
   function validateRegistration() {
     const username = $('#register-username').value.trim(); const password = $('#register-password').value; const confirm = $('#register-confirm').value;
     const usernameValid = /^[A-Za-z0-9_]{3,30}$/.test(username);
@@ -193,6 +213,21 @@
 
   $('#login-username').addEventListener('input', validateLogin); $('#login-password').addEventListener('input', validateLogin);
   $('#register-username').addEventListener('input', validateRegistration); $('#register-password').addEventListener('input', validateRegistration); $('#register-confirm').addEventListener('input', validateRegistration);
+  /** מעדכן את לחצני טופסי הניהול לפי התווים, האורך והטווחים המותרים. */
+  function validateManagementForms() {
+    const admin = $('#admin-create-form');
+    const username = $('#admin-new-username').value.trim();
+    const password = $('#admin-new-password').value;
+    admin.querySelector('[type=submit]').disabled = !/^[a-zA-Z0-9_]{3,30}$/.test(username) ||
+      password.length < 8 || password.length > 128;
+    const manager = $('#manager-player-form');
+    manager.querySelector('[type=submit]').disabled = !manager.checkValidity() ||
+      !['#manager-first', '#manager-last', '#manager-age', '#manager-rating'].every(selector => $(selector).value.trim());
+  }
+
+  $('#admin-create-form').addEventListener('input', validateManagementForms);
+  $('#manager-player-form').addEventListener('input', validateManagementForms);
+  validateManagementForms();
   $('#player-search').addEventListener('keydown', (event) => { if (event.key === 'Enter') loadPlayers(); });
   $('#position-filter').addEventListener('change', loadPlayers);
 
@@ -222,6 +257,7 @@
       const result = await api('/api/admin/users', { method: 'POST', body: JSON.stringify({ username: $('#admin-new-username').value.trim(), password: $('#admin-new-password').value, role: $('#admin-new-role').value }) });
       setMessage('#admin-message', result.message, !result.succeeded); if (result.succeeded) { event.target.reset(); await loadAdminUsers(); }
     } catch (error) { setMessage('#admin-message', error.message, true); }
+    finally { validateManagementForms(); }
   });
 
   $('#manager-player-form').addEventListener('submit', async (event) => {
@@ -230,8 +266,10 @@
       const result = await api('/api/manager/players', { method: 'POST', body: JSON.stringify({ playerId: 0, firstName: $('#manager-first').value.trim(), lastName: $('#manager-last').value.trim(), age: Number($('#manager-age').value), position: $('#manager-position').value, rating: Number($('#manager-rating').value), speed: 70, shooting: 65, passing: 70, defense: 65 }) });
       setMessage('#manager-message', result.message, !result.succeeded); if (result.succeeded) { event.target.reset(); await loadManagerTools(); }
     } catch (error) { setMessage('#manager-message', error.message, true); }
+    finally { validateManagementForms(); }
   });
 
+  /** בודק אם קיימת התחברות מהדפדפן ומעדכן את מצב המסך. */
   async function initialize() {
     try {
       const status = await api('/api/status'); $('#service-status').innerHTML = `<i class="live-dot"></i> ${status.databaseReady ? 'WCF ו־Access מחוברים' : 'המסד אינו זמין'}`;

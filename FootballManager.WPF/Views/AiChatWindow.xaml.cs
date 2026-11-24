@@ -1,7 +1,7 @@
-// תפקיד הקובץ: מטפל בשליחה ובאיפוס בחלון הצ'אט.
-// שכבה: תצוגה בלקוח WPF.
-// משתמשים: הכפתורים בחלון הצ'אט.
-// קשר בפרויקט: שולח את הבקשות דרך WcfServiceClient.
+// מטרה: מחבר את שליחת הצ׳אט ואיפוסו לאירועי WPF.
+// מי משתמש: AiChatWindow.xaml ו־MainWindow.
+// פעולות: Send_Click, Reset_Click ועדכון התשובה.
+// תלויות: WcfServiceClient ו־AccountSessionViewModel.
 using System.Windows;
 using FootballManager.Contracts;
 using FootballManager.WPF.Services;
@@ -15,6 +15,9 @@ public partial class AiChatWindow : Window
     private readonly WcfServiceClient _service;
     private readonly AccountSessionViewModel _session;
 
+    /// <summary>מאתחל את תצוגת הצ׳אט עם שירות WCF ומצב החשבון הקיים.</summary>
+    /// <param name="service">מתאם שירות WCF שמשמש את החלון.</param>
+    /// <param name="session">פרטי הכניסה והאסימון ששומרים בזיכרון הלקוח.</param>
     public AiChatWindow(WcfServiceClient service, AccountSessionViewModel session)
     {
         InitializeComponent();

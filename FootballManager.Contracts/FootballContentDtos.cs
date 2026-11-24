@@ -1,3 +1,7 @@
+// מטרה: שיתוף רשומות שחקנים, קבוצות וניתוח בינה.
+// מי משתמש: שלושת הלקוחות ו־FootballManagerService.
+// פעולות: PlayerDto, TeamDto ותשובות השחקנים, הקבוצות והסקאוט.
+// תלויות: DataContract של WCF.
 using System.Runtime.Serialization;
 
 namespace FootballManager.Contracts;

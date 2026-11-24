@@ -1,3 +1,7 @@
+// מטרה: מנהל רשימת משחקים ופקודות משחק בסבב 3.
+// מי משתמש: MatchesWindow.
+// פעולות: חיפוש, בחירה, שמירה, מחיקה ובדיקת דחייה.
+// תלויות: ViewModelBase, WcfServiceClient ו־AccountSessionViewModel.
 // פקודות ותצוגת משחקים ב־WPF. הגישה לנתונים מתבצעת דרך לקוח שירות WCF.
 using System.Windows.Input;
 using System.Runtime.CompilerServices;

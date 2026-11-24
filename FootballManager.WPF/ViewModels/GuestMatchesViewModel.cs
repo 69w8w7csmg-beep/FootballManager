@@ -1,3 +1,7 @@
+// מטרה: מסנן תוצאות דוגמה למסך אורח ב־WPF.
+// מי משתמש: MainWindow.
+// פעולות: בחירת משחקים לפי מסנן מצב.
+// תלויות: GuestMatch.DemoFixtures.
 // סינון משחקי ההדגמה הציבוריים של C2 לפי מצב המשחק.
 using FootballManager.WPF.Models;
 

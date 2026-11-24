@@ -1,7 +1,7 @@
-// תפקיד הקובץ: מנתח שחקן שנבחר במסך הסקאוט.
-// שכבה: לוגיקה עסקית בשרת WCF.
-// משתמשים: חוזה השירות ולקוח WPF.
-// קשר בפרויקט: מאמת הרשאות, שולף שחקן ופונה לספק הבינה.
+// מטרה: מנתח שחקן מהמסד עבור Player בשרת.
+// מי משתמש: AiScoutViewModel דרך חוזה WCF.
+// פעולות: AnalyzePlayerAsync ובדיקת הרשאת הסקאוט.
+// תלויות: AccessFootballRepository ו־PlayerAnalysisProvider.
 using System.Data.OleDb;
 using System.Net;
 using CoreWCF;
