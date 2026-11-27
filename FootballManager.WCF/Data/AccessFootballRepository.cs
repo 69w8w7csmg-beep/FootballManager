@@ -20,23 +20,25 @@ public sealed class AccessFootballRepository
         _database = database;
     }
 
-    /// <summary>שולפת או מסננת את הנתונים המתוארים בשם Get Players ומחזירה את התוצאה לשכבה הקוראת. בגוף הפעולה: ניגשת למסד Access באמצעות OleDb. נקראת בקוד מתוך Seed Demo Content, Get Players.</summary>
-    /// <param name="searchText">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
-    /// <param name="position">טקסט שהפעולה משתמשת בו, כגון חיפוש, הודעה או ערך טופס.</param>
-    /// <param name="minimumRating">ערך מסוג int שהפעולה צריכה כדי לבצע את תפקידה.</param>
-    /// <param name="maximumRating">ערך מסוג int שהפעולה צריכה כדי לבצע את תפקידה.</param>
-    /// <returns>רשימת הרשומות שנשלפו.</returns>
+    /// <summary>קוראת מטבלת Players ב־Access לפי טווח דירוג, ובמידת הצורך גם לפי שם ועמדה. ממיינת את התוצאה לפי שם משפחה ואז שם פרטי.</summary>
+    /// <param name="searchText">חלק משם פרטי או שם משפחה. ערך ריק מבטל את מסנן השם.</param>
+    /// <param name="position">העמדה המדויקת כפי שהיא נשמרת במסד. ערך ריק מציג את כל העמדות.</param>
+    /// <param name="minimumRating">גבול הדירוג התחתון, כולל.</param>
+    /// <param name="maximumRating">גבול הדירוג העליון, כולל.</param>
+    /// <returns>אובייקט PlayerDto לכל שורה תואמת. אם לא נמצאה התאמה מתקבלת רשימה ריקה.</returns>
     public IReadOnlyList<PlayerDto> GetPlayers(string searchText, string position, int minimumRating, int maximumRating)
     {
         var conditions = new List<string> { "[Rating] BETWEEN ? AND ?" };
         using var connection = _database.OpenConnection();
         using var command = new OleDbCommand();
         command.Connection = connection;
+        // OleDb מתאים ערכים לסימני השאלה לפי הסדר בשאילתה. השמות כאן מתארים כל ערך.
         command.Parameters.AddWithValue("@MinimumRating", minimumRating);
         command.Parameters.AddWithValue("@MaximumRating", maximumRating);
 
         if (!string.IsNullOrWhiteSpace(searchText))
         {
+            // הסוגריים מחילים את טווח הדירוג גם על התאמה לשם פרטי וגם על התאמה לשם משפחה.
             conditions.Add("([FirstName] LIKE ? OR [LastName] LIKE ?)");
             var searchPattern = $"%{searchText.Trim()}%";
             command.Parameters.AddWithValue("@FirstNameSearch", searchPattern);

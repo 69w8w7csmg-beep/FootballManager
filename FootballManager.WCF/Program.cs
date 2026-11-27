@@ -60,7 +60,17 @@ builder.Services.AddSingleton<AccessPlayerStatisticRepository>();
 builder.Services.AddSingleton<PasswordHasher<UserRecord>>();
 builder.Services.AddSingleton<LoginSessionStore>();
 builder.Services.AddSingleton<AiChatHistoryStore>();
-builder.Services.AddHttpClient<GeminiChatProvider>(client => client.Timeout = TimeSpan.FromSeconds(25));
+builder.Services.AddHttpClient<GeminiChatProvider>(client => client.Timeout = TimeSpan.FromSeconds(25))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
+    .RedactLoggedHeaders(["x-goog-api-key", "Authorization"]);
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<LineupPlans>();
+builder.Services.AddHttpClient<FootballFeed>(client =>
+{
+    client.BaseAddress = new Uri("https://v3.football.api-sports.io/");
+    client.Timeout = TimeSpan.FromSeconds(15);
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
+    .RedactLoggedHeaders(["x-apisports-key"]);
 builder.Services.AddHttpClient<OpenAiPlayerAnalysisProvider>(client =>
 {
     // זמן קצוב קצר משאיר את חלון הלקוח זמין גם כששירות AI אינו עונה.
@@ -88,6 +98,7 @@ app.UseServiceModel(serviceBuilder =>
 });
 
 app.MapFootballManagerWebApi();
+app.MapFootballFeed();
 
 app.Run();
 

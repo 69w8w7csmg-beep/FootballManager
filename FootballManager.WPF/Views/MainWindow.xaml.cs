@@ -203,13 +203,14 @@ public partial class MainWindow : Window
     /// <param name="e">פרטי האירוע ש-WPF מוסר בעת הפעלת הפעולה.</param>
     private async void SearchPlayers_Click(object sender, RoutedEventArgs e) => await RefreshPublicPlayersAsync();
 
-    /// <summary>מבצעת את שלב המערכת Refresh Public Players Async באמצעות הנתונים שבפרמטרים וממשיכה את זרימת העבודה של המחלקה. בגוף הפעולה: מטפלת בשגיאה לפי בלוק catch שבגוף הפעולה. נקראת בקוד מתוך Show Players_Click, Search Players_Click.</summary>
-    /// <returns>משימה אסינכרונית שמסתיימת כשהפעולה והשירות שאליו פנתה מסתיימים.</returns>
+    /// <summary>קוראת את שם השחקן והעמדה משדות המסך, שולחת אותם לשרת ומציגה את הרשומות שחזרו. אם אי אפשר להגיע ל־WCF, היא מציגה הודעה.</summary>
+    /// <returns>משימה שמסתיימת אחרי עדכון הרשימה או אחרי הצגת שגיאה.</returns>
     private async Task RefreshPublicPlayersAsync()
     {
         try
         {
             var position = (PlayerPositionFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? string.Empty;
+            // await מאפשר לחלון להמשיך להגיב בזמן שהשרת מחפש. לאחר התשובה הרשימה מתעדכנת ב־WPF.
             var result = await _serviceClient.GetPlayersAsync(PlayerSearchTextBox.Text, position);
             PublicPlayersList.ItemsSource = result.Succeeded ? result.Players : null;
             ContentMessageText.Text = result.Message;

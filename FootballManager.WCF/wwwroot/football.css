@@ -1,0 +1,21 @@
+/*
+מטרה: מסדר את מסך הכדורגל ואת ההמחשה של מערך על מגרש.
+מי משתמש: עמוד football.html.
+פעולות: פריסת משחקים וסגלים, והתאמה למסך צר.
+תלויות: מבנה העמוד וצבעי content.css.
+*/
+.football-columns { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.football-columns button { margin-top: 10px; }
+.football-columns ul { max-height: 24rem; overflow: auto; }
+select { min-width: 0; width: 100%; }
+.formation-card { max-width: 560px; margin: 20px auto; }
+#pitch { padding: 12px; margin-top: 12px; min-height: 250px; background: #146049; border: 2px solid #b5dfcb; border-radius: 8px; display: grid; gap: 12px; }
+.pitch-row { display: flex; justify-content: space-evenly; gap: 6px; }
+.position { min-width: 42px; padding: 6px; border-radius: 15px; text-align: center; color: #102036; background: #f4c928; }
+.lineup-team { margin-top: 12px; border-top: 1px solid #476079; padding-top: 10px; }
+.planner { margin-top: 20px; }
+.planner button { margin: 8px 0; }
+.plan-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 10px; }
+.substitution { align-items: end; margin-top: 16px; }
+#plan-answer { white-space: pre-wrap; }
+@media (max-width: 720px) { .football-columns { grid-template-columns: minmax(0,1fr); } }
