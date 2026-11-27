@@ -41,6 +41,14 @@ public static class FootballFeedEndpoints
             team > 0 ? ReadAsync(feed, $"players/squads?team={team}", 60, token) : Task.FromResult(Invalid()));
         app.MapGet("/api/football/lineups/{match:int}", (int match, FootballFeed feed, CancellationToken token) =>
             match > 0 ? ReadAsync(feed, $"fixtures/lineups?fixture={match}", 10, token) : Task.FromResult(Invalid()));
+        app.MapGet("/api/football/match-players/{match:int}", (int match, FootballFeed feed, CancellationToken token) =>
+            match > 0 ? ReadAsync(feed, $"fixtures/players?fixture={match}", 60, token) : Task.FromResult(Invalid()));
+        app.MapGet("/api/football/events/{match:int}", (int match, FootballFeed feed, CancellationToken token) =>
+            match > 0 ? ReadAsync(feed, $"fixtures/events?fixture={match}", 10, token) : Task.FromResult(Invalid()));
+        app.MapGet("/api/football/player-season", (int player, int league, int season, FootballFeed feed, CancellationToken token) =>
+            player > 0 && ValidSeason(league, season)
+                ? ReadAsync(feed, $"players?id={player}&league={league}&season={season}", 60, token)
+                : Task.FromResult(Invalid()));
         app.MapLineupPlans();
     }
 

@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/football.css">
   <script defer src="/football.js"></script>
   <script defer src="/lineup-planner.js"></script>
+  <script defer src="/player-performance.js"></script>
 </head>
 <body>
   <header><a href="/">FootballManager</a><a href="/content.html">תוכן המערכת</a></header>
@@ -34,6 +35,8 @@
         <button type="button" id="lineups" disabled>הרכבים שפורסמו</button>
         <p role="status" id="lineup-message"></p>
         <div id="match-lineups"></div>
+        <button type="button" id="match-events" disabled>אירועי המשחק</button>
+        <p role="status" id="events-status"></p><ul id="events-list"></ul>
       </section>
       <section class="record">
         <h2>קבוצות וסגלים</h2>
@@ -43,6 +46,15 @@
         <ul id="players"></ul>
       </section>
     </div>
+    <section class="record" aria-labelledby="performance-heading">
+      <h2 id="performance-heading">ביצועי שחקן</h2>
+      <p>בחר קבוצה והצג את הסגל שלה כדי לבחור שחקן. הנתונים מתייחסים לכדורגלן שבחרת מהקטלוג.</p>
+      <label>שחקן<select id="performance-player" disabled></select></label>
+      <button type="button" id="performance-load" disabled>הצג ביצועים</button>
+      <p role="status" id="performance-status"></p>
+      <p id="performance-season"></p><ul id="performance-games"></ul>
+      <p id="performance-next"></p>
+    </section>
     <section class="record formation-card">
       <h2>תצוגת מערך</h2>
       <label>מערך להמחשה<select id="formation"></select></label>

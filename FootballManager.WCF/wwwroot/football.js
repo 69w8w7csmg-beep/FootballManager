@@ -60,6 +60,9 @@
       options('team', clubs.value, item => item.team.id, item => item.team.name);
       $('squad').disabled = clubs.value.length === 0;
     }
+    document.dispatchEvent(new CustomEvent('football-league-loaded', { detail: {
+      matches, league: Number($('league').value), season: Number($('season').value)
+    } }));
     $('message').textContent = errors.join(' ') || (matches.length || $('team').value ? 'בחר משחק או קבוצה.' : 'אין נתונים לליגה ולעונה שנבחרו.');
     $('load').disabled = false;
   }
@@ -85,6 +88,7 @@
       const groups = await read('squad/' + selected);
       if (request !== version || selected !== $('team').value) return;
       const players = groups[0]?.players ?? [];
+      document.dispatchEvent(new CustomEvent('football-squad-loaded', { detail: { team: Number(selected), players } }));
       $('players').replaceChildren(...playerList(players).children);
       $('squad-message').textContent = players.length ? 'הסגל הנוכחי של הקבוצה לפי הספק.' : 'לא פורסם סגל לקבוצה שנבחרה.';
     } catch (error) {
